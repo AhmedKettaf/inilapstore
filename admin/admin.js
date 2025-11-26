@@ -16,11 +16,13 @@ const submitBtn = document.getElementById('submitBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const categorySelect = document.getElementById('productCategory');
 const stockQtyContainer = document.getElementById('stockQtyContainer');
+const stockQtyInput = document.getElementById('stockQty'); // تم تعريف المتغير هنا
 
 const itemIdToEdit = document.getElementById('itemIdToEdit');
 const itemTableToEdit = document.getElementById('itemTableToEdit');
 
 const PC_PART_CATEGORIES = ['cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'cooling'];
+const ALL_TABLES = ['products', 'pc_parts']; 
 
 function displayMessage(element, text, type) {
     element.textContent = text;
@@ -38,24 +40,11 @@ function displayMessage(element, text, type) {
     }
 }
 
+
 function toggleProductFields() {
-    const selectedCategory = categorySelect.value;
-    
-    const pcPartTypeContainer = document.getElementById('pcPartTypeContainer');
-    if (pcPartTypeContainer) {
-         pcPartTypeContainer.style.display = 'none';
-    }
 
-    const isPcPart = PC_PART_CATEGORIES.includes(selectedCategory);
-
-    if (isPcPart) {
-        stockQtyContainer.style.display = 'none';
-        document.getElementById('stockQty').required = false;
-        document.getElementById('stockQty').value = 0; 
-    } else {
-        stockQtyContainer.style.display = 'block';
-        document.getElementById('stockQty').required = true;
-    }
+    stockQtyContainer.style.display = 'block';
+    stockQtyInput.required = true;
 }
 
 function updateUI(user) {
@@ -80,6 +69,7 @@ async function checkUserStatus() {
     const { data: { user } } = await supabase.auth.getUser();
     updateUI(user);
 }
+
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -135,7 +125,7 @@ addForm.addEventListener('submit', async (e) => {
     const price = parseFloat(document.getElementById('productPrice').value);
     const image = document.getElementById('productImage').value; 
     const description = document.getElementById('productDesc').value;
-    const stockQty = parseInt(document.getElementById('stockQty').value) || 0; 
+    const stockQty = parseInt(stockQtyInput.value) || 0; 
 
     let targetTable;
     let insertionData;
@@ -154,7 +144,8 @@ addForm.addEventListener('submit', async (e) => {
             type: category, 
             price,
             image_url: image,
-            description
+            description,
+            stock_qty: stockQty 
         };
     } else {
         targetTable = 'products';
@@ -182,7 +173,7 @@ addForm.addEventListener('submit', async (e) => {
     }
 
     if (id && table) {
-        displayMessage(messageDisplay, `✅ تم تعديل المنتج بنجاح في جدول ${targetTable}!`, 'success');
+        displayMessage(messageDisplay, `✅ تم تعديل المنتج بنجاح في جدول ${table}!`, 'success');
     } else {
         displayMessage(messageDisplay, `✅ تمت إضافة المنتج بنجاح إلى جدول ${targetTable}!`, 'success');
     }
@@ -194,12 +185,11 @@ addForm.addEventListener('submit', async (e) => {
 });
 
 
-
 async function editItem(e) {
     const id = e.target.getAttribute('data-id');
     const table = e.target.getAttribute('data-table');
     
-    productsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    addForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
 
 
     const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
@@ -223,8 +213,11 @@ async function editItem(e) {
     
 
     if (data.stock_qty !== undefined) {
-        document.getElementById('stockQty').value = data.stock_qty;
+        stockQtyInput.value = data.stock_qty;
+    } else {
+        stockQtyInput.value = 0; 
     }
+
     toggleProductFields();
 
 
@@ -247,6 +240,7 @@ function cancelEditMode() {
     submitBtn.style.color = 'white';
     cancelEditBtn.style.display = 'none';
     addForm.reset();
+    toggleProductFields();
     displayMessage(messageDisplay, '', 'info');
 }
 
@@ -260,10 +254,9 @@ async function loadAllItems() {
 
     productsList.innerHTML = '<p>Loading items...</p>';
 
-    const [productsResponse, partsResponse] = await Promise.all([
-        supabase.from('products').select('*'),
-        supabase.from('pc_parts').select('*')
-    ]);
+    const [productsResponse, partsResponse] = await Promise.all(
+        ALL_TABLES.map(table => supabase.from(table).select('*'))
+    );
 
     productsList.innerHTML = '';
 
@@ -277,13 +270,13 @@ async function loadAllItems() {
             ...p, 
             table: 'products', 
             displayCategory: p.category, 
-            stockDisplay: `Stock: ${p.stock_qty || 0}`
+            stockDisplay: `Stock: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`
         })),
         ...partsResponse.data.map(p => ({ 
             ...p, 
             table: 'pc_parts', 
             displayCategory: p.type, 
-            stockDisplay: 'Stock: N/A' 
+            stockDisplay: `Stock: ${p.stock_qty !== undefined ? p.stock_qty : '0'}` // يُعرض الكمية
         }))
     ];
 

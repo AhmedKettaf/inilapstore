@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | تأكيد الطلب</title>
+    <link rel="stylesheet" href="client.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .checkout-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 30px;
+        }
+        .checkout-form-area, .order-summary-area {
+            flex: 1;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        .order-summary-area {
+            background-color: #f9f9f9;
+        }
+        .order-summary-list div {
+            padding: 8px 0;
+            border-bottom: 1px dotted #ddd;
+        }
+        .order-summary-list div:last-child {
+            border-bottom: none;
+        }
+        .final-total {
+            font-size: 1.3em;
+            color: #d9534f; /* لون مميز للإجمالي */
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #ddd;
+        }
+        /* تنسيق نموذج الإدخال */
+        .checkout-form-area input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .submit-checkout-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .submit-checkout-btn:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        .submit-checkout-btn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="client-nav">
+        <h1>INI LAP</h1>
+        <p>Checkout | تأكيد الطلب</p>
+    </nav>
+    
+    <main class="container">
+        <h2 style="text-align: center; margin-bottom: 30px;">خطوة أخيرة: تفاصيل الطلب والشحن</h2>
+        
+        <div id="checkoutContainer" class="checkout-container">
+            
+            <div class="checkout-form-area">
+                <h3>1. بيانات الشحن 📝</h3>
+                <form id="checkoutForm">
+                    <label for="fullName">الاسم واللقب:</label>
+                    <input type="text" id="fullName" required placeholder="مثال: أحمد محمد" />
+
+                    <label for="phone">رقم الهاتف:</label>
+                    <input type="tel" id="phone" required pattern="[0-9]{10,}" placeholder="مثال: 05xx xxx xxx" />
+                    
+                    <label for="wilaya">الولاية:</label>
+                    <input type="text" id="wilaya" required placeholder="مثال: الجزائر العاصمة" />
+                    
+                    <p id="checkoutMessage" style="color: red; margin-top: 10px;"></p>
+                    
+                    <button type="submit" id="submitCheckoutBtn" class="submit-checkout-btn">تأكيد الطلب الآن</button>
+                </form>
+            </div>
+            
+            <div class="order-summary-area">
+                <h3>2. ملخص الطلب 🛍️</h3>
+                <div id="orderSummaryList" class="order-summary-list">
+                    <p style="text-align: center;">جاري تحميل السلة...</p>
+                </div>
+                <div id="finalTotalDisplay" class="final-total">
+                    الإجمالي الكلي: <span>0.00 DZD</span>
+                </div>
+            </div>
+
+        </div>
+        
+        <div id="statusAlert" style="text-align: center; margin-top: 30px;"></div>
+        
+    </main>
+    
+    <script type="module" src="supabase.js"></script> 
+    <script type="module" src="checkout.js"></script> 
+</body>
+</html>
