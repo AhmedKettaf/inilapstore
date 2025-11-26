@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Store - Laptops & PC Parts</title>
+    <link rel="stylesheet" href="client.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    </head>
+<body>
+
+    <nav class="client-nav">
+        <h1>🛒 Tech Store</h1>
+        <p>Your one-stop shop for Laptops and PC Components</p>
+    </nav>
+
+    <main class="container">
+        
+        <p id="statusMessage" style="text-align: center; color: #007bff; margin-bottom: 20px;">Loading data...</p>
+
+        <section id="productsSection" class="product-section">
+            <h2>💻 أجهزة كاملة وملحقات</h2>
+            
+            <div id="productFilters" class="filter-buttons">
+                <button data-category="all" class="filter-btn active">عرض الكل</button>
+                
+                <button data-category="desktop_pc" class="filter-btn">Desktop PCs</button>
+                <button data-category="all_in_one" class="filter-btn">All-in-One</button>
+                
+                <button data-category="laptop" class="filter-btn">Laptops</button>
+                <button data-category="prebuilt_pc" class="filter-btn">Prebuilt PCs</button>
+                <button data-category="monitor" class="filter-btn">Monitors</button>
+                <button data-category="accessory" class="filter-btn">Accessories</button>
+                <button data-category="software" class="filter-btn">Software</button>
+                <button data-category="network" class="filter-btn">Networking</button>
+            </div>
+
+            <div id="productsGrid" class="product-grid">
+                </div>
+            <p id="noProductsFound" style="display: none; text-align: center; color: gray;">لا توجد منتجات متوفرة حالياً في هذه الفئة.</p>
+        </section>
+        
+        <hr>
+
+        <section id="pcPartsSection" class="product-section">
+            <h2>🛠️ قطع التجميعات (PC Parts)</h2>
+            
+            <div id="partsFilters" class="filter-buttons">
+                <button data-type="all" class="filter-btn active">عرض جميع القطع</button>
+                <button data-type="cpu" class="filter-btn">CPU</button>
+                <button data-type="gpu" class="filter-btn">GPU</button>
+                <button data-type="motherboard" class="filter-btn">Motherboard</button>
+                <button data-type="ram" class="filter-btn">RAM</button>
+                <button data-type="storage" class="filter-btn">Storage</button>
+                <button data-type="psu" class="filter-btn">PSU</button>
+                <button data-type="case" class="filter-btn">Case</button>
+                <button data-type="cooling" class="filter-btn">Cooling</button>
+            </div>
+
+            <div id="pcPartsGrid" class="product-grid">
+                </div>
+            <p id="noPartsFound" style="display: none; text-align: center; color: gray;">لا توجد قطع كمبيوتر متوفرة حالياً في هذه الفئة.</p>
+        </section>
+
+    </main>
+    
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Item Details</h2>
+            <div id="modalBody">
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="supabase.js"></script> 
+    <script type="module" src="client.js"></script> 
+</body>
+</html>

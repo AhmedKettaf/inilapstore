@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Your PC - Tech Store</title>
+    <link rel="stylesheet" href="buildyourpc.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <nav class="client-nav">
+        <a href="index.html" class="back-link">← Back to Home</a>
+        <h1>🛠️ Build Your PC</h1>
+        <a href="cart.html" class="cart-icon-container">
+            <i class="fas fa-shopping-cart cart-icon"></i>
+            <span class="cart-count" id="cartCount">0</span>
+        </a>
+    </nav>
+
+    <main class="container">
+        
+        <div class="build-header">
+            <h2>Select Your Components</h2>
+            <p>Choose the parts below to build your custom gaming PC. Compatibility checks will be performed automatically.</p>
+        </div>
+
+        <section id="componentList" class="component-list">
+            
+            </section>
+        
+        <hr>
+
+        <section class="build-summary">
+            <div id="compatibilityMessage" class="comp-message warning" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i> **Compatibility Check:** Please select all primary components.
+            </div>
+
+            <div class="total-area">
+                <span class="total-label">Total:</span>
+                <span id="buildTotal" class="total-price">0 DA</span>
+            </div>
+
+            <div class="action-buttons">
+                <button id="addToCartBtn" class="buy-button" disabled>Add to cart</button>
+                <button id="removeAllBtn" class="secondary-button"><i class="fas fa-trash-alt"></i> Remove all</button>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="selectionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Select <span id="modalComponentName"></span></h2>
+            <div id="modalBody" class="modal-component-list">
+                <p id="modalLoading">Loading options...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="supabase.js"></script> 
+    <script type="module" src="buildyourpc.js"></script> 
+</body>
+</html>

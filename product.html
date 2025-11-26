@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Product Details - Tech Store</title>
+    <link rel="stylesheet" href="product.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <nav class="client-nav">
+        <h1>🛒 Tech Store</h1>
+        <p><a href="index.html">← Back to Home</a></p>
+    </nav>
+
+    <main class="container">
+        <section id="productDetails" class="details-section">
+            <div id="loadingIndicator">Loading item details...</div>
+        </section>
+        
+        <div id="errorMessage" class="error-message" style="display: none;">
+            Item not found or an error occurred.
+        </div>
+    </main>
+    
+    <script type="module" src="supabase.js"></script> 
+    <script type="module" src="product.js"></script> 
+</body>
+</html>

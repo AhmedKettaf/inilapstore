@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Product Management</title>
+    <link rel="stylesheet" href="admin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <nav class="admin-nav">
+        <h2>💻 Admin Dashboard</h2>
+        <div class="nav-right">
+            <div id="admin-auth-status"></div>
+            <button id="signOutBtn" style="display: none;">Sign Out</button>
+        </div>
+    </nav>
+
+    <section id="authSection" class="auth-container">
+        <h3>🔑 Admin Login</h3>
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required />
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" required />
+
+            <button type="submit">Log In</button>
+            <p id="authMessage"></p>
+        </form>
+    </section>
+    
+    <section id="adminContent" class="admin-container" style="display: none;">
+        
+        <h3 id="formTitle">➕ Add New Item (Product / PC Part)</h3>
+
+        <form id="addProductForm">
+            <input type="hidden" id="itemIdToEdit" value="">
+            <input type="hidden" id="itemTableToEdit" value="">
+            
+            <label for="productName">Item Name:</label>
+            <input type="text" id="productName" required />
+
+            <label for="productCategory">Category:</label>
+            <select id="productCategory" required>
+                <option value="" disabled selected>Select Category</option>
+                <option value="desktop_pc">Desktop PC / حاسوب مكتبي</option>
+                <option value="all_in_one">All-in-One PC / الكل في واحد</option>
+                
+                <option value="laptop">Laptop / جهاز محمول</option>
+                <option value="prebuilt_pc">Prebuilt PC / جهاز مجمع مسبقاً</option>
+                <option value="monitor">Monitor / شاشة عرض</option>
+                <option value="accessory">Accessory / ملحقات طرفية (كيبورد، ماوس، سماعات)</option>
+                <option value="software">Software / برمجيات</option>
+                <option value="network">Networking / شبكات (راوتر، إكستندر)</option>
+                
+                <option value="cpu">PC Part: CPU</option>
+                <option value="gpu">PC Part: GPU</option>
+                <option value="motherboard">PC Part: Motherboard</option>
+                <option value="ram">PC Part: RAM</option>
+                <option value="storage">PC Part: Storage</option>
+                <option value="psu">PC Part: PSU</option>
+                <option value="case">PC Part: Case</option>
+                <option value="cooling">PC Part: Cooling (Fans, Coolers)</option>
+            </select>
+
+            <div id="pcPartTypeContainer" class="hidden-field" style="display: none;">
+                <label for="pcPartType">PC Part Type:</label>
+                <select id="pcPartType">
+                    <option value="cpu">CPU</option>
+                    <option value="gpu">GPU</option>
+                    <option value="ram">RAM</option>
+                    <option value="psu">PSU</option>
+                    <option value="case">Case</option>
+                    <option value="storage">Storage</option>
+                    <option value="motherboard">Motherboard</option>
+                </select>
+            </div>
+
+            <div id="stockQtyContainer" class="hidden-field" style="display: none;">
+                <label for="stockQty">Stock Quantity:</label>
+                <input type="number" id="stockQty" value="1" min="0" />
+            </div>
+
+            <label for="productPrice">Price :</label>
+            <input type="number" id="productPrice" step="0.01" min="0.01" required />
+
+            <label for="productImage">Image URL:</label>
+            <input type="url" id="productImage" required /> 
+            <label for="productDesc">Description:</label>
+            <textarea id="productDesc" rows="4" required></textarea>
+
+            <button type="submit" id="submitBtn">Add Item</button>
+            <button type="button" id="cancelEditBtn" style="display:none; background-color: #ffc107;">Cancel Edit</button>
+            <p id="message"></p>
+        </form>
+
+        <hr>
+
+        <h3>📋 Items List (Products & PC Parts)</h3>
+        <div id="productsList" class="admin-grid">
+            </div>
+    </section>
+
+    <script type="module" src="supabase.js"></script> 
+    <script type="module" src="admin.js"></script> 
+</body>
+</html>

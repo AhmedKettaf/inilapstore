@@ -1,0 +1,236 @@
+
+:root {
+    --primary-color: #007bff; 
+    --secondary-color: #343a40; 
+    --background-light: #f8f9fa;
+    --card-background: #ffffff;
+    --in-stock-color: #28a745;
+    --out-of-stock-color: #dc3545;
+    --price-color: #ffc107; 
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-light);
+    color: var(--secondary-color);
+    line-height: 1.6;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+
+.client-nav {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 15px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.client-nav h1 {
+    font-size: 1.8rem;
+    color: var(--price-color);
+}
+
+.client-nav a {
+    color: #cccccc;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.client-nav a:hover {
+    color: var(--primary-color);
+}
+
+
+#loadingIndicator, .error-message {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.error-message {
+    color: var(--out-of-stock-color);
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.details-section {
+    min-height: 50vh; 
+}
+
+.product-detail-card {
+    display: flex; 
+    flex-wrap: wrap; 
+    background-color: var(--card-background);
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-top: 30px;
+}
+
+.image-column {
+    flex: 1;
+    min-width: 300px; 
+    padding-right: 30px;
+    text-align: center;
+}
+
+.info-column {
+    flex: 2;
+    min-width: 350px; 
+    padding-left: 30px;
+    border-left: 1px solid #eee; 
+}
+
+.product-image {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 8px;
+    object-fit: contain;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease;
+}
+
+.product-image:hover {
+    transform: scale(1.02);
+}
+
+.info-column h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.price-tag {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--out-of-stock-color);
+    margin-bottom: 20px;
+    display: block; 
+}
+
+.buy-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    width: 100%;
+    max-width: 300px;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.buy-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.description-box {
+    margin: 20px 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.full-description {
+    font-size: 1rem;
+    color: #555;
+    white-space: pre-wrap; 
+}
+
+.specs-box {
+    background-color: #f1f6ff; 
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.specs-box h3 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+}
+
+.specs-box p {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.specs-box strong {
+    color: var(--secondary-color);
+    min-width: 120px;
+    display: inline-block;
+}
+
+
+.stock {
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    font-size: 0.9rem;
+}
+
+.in-stock {
+    background-color: var(--in-stock-color);
+    color: white;
+}
+
+.out-of-stock {
+    background-color: var(--out-of-stock-color);
+    color: white;
+}
+
+
+@media (max-width: 900px) {
+    .product-detail-card {
+        flex-direction: column; 
+    }
+
+    .image-column, .info-column {
+        padding: 0;
+        border-left: none;
+        min-width: unset;
+        width: 100%;
+    }
+
+    .image-column {
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-column {
+        padding-top: 20px;
+    }
+    
+    .buy-button {
+        max-width: 100%; 
+    }
+}
