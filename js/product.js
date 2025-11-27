@@ -17,9 +17,6 @@ let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
 let currentItem = null; 
 
 
-/**
- * @description Updates the cart counter display and local storage.
- */
 function updateCart() {
     const count = cart.reduce((total, item) => total + item.quantity, 0);
     cartCount.textContent = count;
@@ -27,46 +24,43 @@ function updateCart() {
     renderCartModal(); 
 }
 
-/**
- * @description Adds the currently viewed item to the cart or increments its quantity.
- */
 function addToCart(item) {
-    if (!item || item.stock_qty <= 0) return;
+    if (!item || item.stock_qty <= 0) {
+        alert(`Le produit ${item.name} est actuellement en rupture de stock.`);
+        return;
+    }
 
     const id = item.id.toString();
     const table = item.table;
     const maxQty = item.stock_qty || Infinity; 
+    const finalPrice = item.price; 
 
     const existingItem = cart.find(i => i.id.toString() === id && i.table === table);
 
     if (existingItem) {
         if (existingItem.quantity < maxQty) {
             existingItem.quantity += 1;
-            alert(`تم زيادة كمية ${item.name}.`);
+            alert(`Quantité de ${item.name} augmentée à ${existingItem.quantity}.`);
         } else {
-            alert(`الكمية القصوى المتوفرة من ${item.name} هي ${maxQty}.`);
+            alert(`La quantité maximale disponible de ${item.name} est ${maxQty}.`);
             return;
         }
     } else {
         const name = item.name;
-        const price = item.price;
         const image = item.image_url;
-        cart.push({ id, table, quantity: 1, name, price, image, maxQty });
-        alert(`تم إضافة ${name} إلى السلة.`);
+        cart.push({ id, table, quantity: 1, name, price: finalPrice, image, maxQty });
+        alert(`Le produit ${name} a été ajouté au panier.`);
     }
     updateCart();
 }
 
 
-/**
- * @description Renders the cart contents inside the modal.
- */
 function renderCartModal() {
     cartItemsContainer.innerHTML = '';
     let total = 0;
 
     if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p style="text-align: center;">السلة فارغة حالياً.</p>';
+        cartItemsContainer.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">Le panier est actuellement vide.</p>';
         cartTotal.textContent = '0.00 DZD';
         goToCheckoutBtn.disabled = true;
         return;
@@ -82,15 +76,15 @@ function renderCartModal() {
             <img src="${item.image || 'placeholder.png'}" alt="${item.name}" class="cart-item-img">
             <div class="cart-item-details">
                 <h4>${item.name}</h4>
-                <p>Price: ${item.price.toFixed(2)} DZD</p>
+                <p>Prix unitaire: ${item.price.toFixed(2)} DZD</p>
                 <div class="cart-quantity-controls">
-                    <button class="qty-control-btn" data-action="decrease" data-index="${index}">-</button>
+                    <button class="qty-control-btn" data-action="decrease" data-index="${index}" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
                     <input type="number" value="${item.quantity}" min="1" max="${item.maxQty}" data-index="${index}" class="cart-qty-input">
-                    <button class="qty-control-btn" data-action="increase" data-index="${index}">+</button>
+                    <button class="qty-control-btn" data-action="increase" data-index="${index}" ${item.quantity >= item.maxQty ? 'disabled' : ''}>+</button>
                 </div>
-                <strong>Subtotal: ${itemTotal.toFixed(2)} DZD</strong>
+                <strong>Sous-total: ${itemTotal.toFixed(2)} DZD</strong>
             </div>
-            <button class="remove-from-cart-btn" data-index="${index}">❌</button>
+            <button class="remove-from-cart-btn" data-index="${index}" title="Retirer l'article">❌</button>
         `;
         cartItemsContainer.appendChild(cartItemDiv);
     });
@@ -99,16 +93,14 @@ function renderCartModal() {
     goToCheckoutBtn.disabled = false;
 }
 
-/**
- * @description Handles quantity changes and removal from cart.
- * @param {Event} e 
- */
 function handleCartControls(e) {
     const target = e.target;
     if (target.classList.contains('remove-from-cart-btn')) {
         const index = target.getAttribute('data-index');
-        cart.splice(index, 1);
-        updateCart();
+        if (confirm(`Êtes-vous sûr de vouloir retirer ${cart[index].name} du panier ?`)) {
+            cart.splice(index, 1);
+            updateCart();
+        }
     } else if (target.classList.contains('qty-control-btn')) {
         const index = target.getAttribute('data-index');
         const action = target.getAttribute('data-action');
@@ -128,7 +120,7 @@ function handleCartControls(e) {
         if (newQty < 1) newQty = 1;
         if (newQty > item.maxQty) {
             newQty = item.maxQty;
-            alert(`الحد الأقصى للكمية هو ${item.maxQty}.`);
+            alert(`La quantité maximale est ${item.maxQty}.`);
         }
         item.quantity = newQty;
         target.value = newQty; 
@@ -144,7 +136,6 @@ function openCartModal() {
 function closeCartModal() {
     cartModal.style.display = 'none';
 }
-
 
 
 function getQueryParameters() {
@@ -166,7 +157,7 @@ async function loadItemDetails() {
     if (!id || !table || (table !== 'products' && table !== 'pc_parts')) {
         loadingIndicator.style.display = 'none';
         errorMessage.style.display = 'block';
-        errorMessage.textContent = '❌ Invalid item ID or table specified. Please check the URL.';
+        errorMessage.textContent = '❌ ID d\'article ou table spécifié(e) non valide. Veuillez vérifier l\'URL.';
         return;
     }
 
@@ -181,7 +172,7 @@ async function loadItemDetails() {
 
         if (error || !item) {
             errorMessage.style.display = 'block';
-            errorMessage.textContent = `🚨 Error loading details: ${error?.message || 'Item not found'}`;
+            errorMessage.textContent = `🚨 Erreur de chargement des détails : ${error?.message || 'Article introuvable'}`;
             console.error('Details Fetch Error:', error);
             return;
         }
@@ -191,7 +182,7 @@ async function loadItemDetails() {
     } catch (e) {
         loadingIndicator.style.display = 'none';
         errorMessage.style.display = 'block';
-        errorMessage.textContent = '❌ An unexpected error occurred while fetching data.';
+        errorMessage.textContent = '❌ Une erreur inattendue s\'est produite lors de la récupération des données.';
         console.error('General Fetch Error:', e);
     }
 }
@@ -199,22 +190,44 @@ async function loadItemDetails() {
 function displayItemDetails(item, table) {
     pageTitle.textContent = item.name + ' - Tech Store';
 
+    const priceNormal = item.price;
+    const isOfferValid = item.is_offer && item.offer_price > 0 && item.offer_price < priceNormal;
+    const priceToUse = isOfferValid ? item.offer_price : priceNormal;
+
+    let priceHTML;
+    let offerBadgeHTML = '';
+
+    if (isOfferValid) {
+        priceHTML = `
+            <s class="old-price-tag">${priceNormal.toFixed(2)} DZD</s>
+            <p class="price-tag offer-price-tag">${priceToUse.toFixed(2)} DZD</p>
+        `;
+        offerBadgeHTML = `<span class="offer-badge">🔥 OFFRE SPÉCIALE !</span>`;
+    } else {
+        priceHTML = `<p class="price-tag">${priceToUse.toFixed(2)} DZD</p>`;
+    }
+
     const inStock = item.stock_qty > 0;
     const stockStatusClass = inStock ? 'in-stock' : 'out-of-stock';
-    const stockMessage = inStock ? `In Stock (${item.stock_qty} units)` : 'Out of Stock';
+    const stockMessage = inStock ? `En Stock (${item.stock_qty} unités)` : 'Rupture de Stock';
 
-    let actionText = (table === 'pc_parts') ? 'Add to Build' : 'Add to Cart';
+    let actionText = (table === 'pc_parts') ? 'Ajouter à la Configuration' : 'Ajouter au Panier';
+    let buttonText = inStock ? actionText : 'Rupture de Stock';
 
     let detailsHTML = `
         <div class="product-detail-card">
+            ${offerBadgeHTML}
             <div class="image-column">
-                <img src="${item.image_url || 'https://via.placeholder.com/400?text=Image+Not+Found'}" alt="${item.name}" class="product-image"/>
-                <p class="price-tag">${item.price.toFixed(2)} DZD</p>
+                <img src="${item.image_url || 'https://via.placeholder.com/400?text=Image+Non+Trouvée'}" alt="${item.name}" class="product-image"/>
                 
-                <p class="stock-status-display ${stockStatusClass}">${stockMessage}</p>
+                <div class="price-container">
+                    ${priceHTML}
+                </div>
+                
+                <p class="stock-status-display">Statut: <span class="stock ${stockStatusClass}">${stockMessage}</span></p>
                 
                 <button id="addToCartBtn" class="buy-button" ${!inStock ? 'disabled' : ''}>
-                    🛒 ${inStock ? actionText : 'Out of Stock'}
+                    🛒 ${buttonText}
                 </button>
             </div>
 
@@ -222,24 +235,26 @@ function displayItemDetails(item, table) {
                 <h1>${item.name}</h1>
                 
                 <div class="description-box">
+                    <h3>📃 Description du Produit</h3>
                     <p class="full-description">
-                        ${item.description}
+                        ${item.description || 'Aucune description détaillée n\'est disponible pour cet article.'}
                     </p>
                 </div>
                 
                 <div class="specs-box">
-                    <h3>✨ Key Specifications</h3>
+                    <h3>✨ Spécifications Clés</h3>
     `;
 
     if (table === 'products') {
         detailsHTML += `
-            <p><strong>Category:</strong> <span>${item.category?.toUpperCase() || 'N/A'}</span></p>
+            <p><strong>Catégorie:</strong> <span>${item.category?.toUpperCase() || 'N/A'}</span></p>
+            <p><strong>ID Produit:</strong> <span>#${item.id}</span></p>
         `;
     } else if (table === 'pc_parts') {
         detailsHTML += `
-            <p><strong>Part Type:</strong> <span>${item.type?.toUpperCase() || 'N/A'}</span></p>
-            <p><strong>Manufacturer:</strong> <span>${item.manufacturer || 'Unknown'}</span></p>
-            <p><strong>Compatibility:</strong> <span>Compatible with most modern builds (Check details).</span></p>
+            <p><strong>Type de Pièce:</strong> <span>${item.type?.toUpperCase() || 'N/A'}</span></p>
+            <p><strong>Fabricant:</strong> <span>${item.manufacturer || 'Inconnu'}</span></p>
+            <p><strong>SKU:</strong> <span>#${item.id}</span></p>
         `;
     }
 
@@ -254,7 +269,11 @@ function displayItemDetails(item, table) {
     const cartButton = document.getElementById('addToCartBtn');
     if (cartButton) {
         cartButton.addEventListener('click', () => {
-            addToCart(currentItem);
+            const itemWithFinalPrice = {
+                ...currentItem, 
+                price: priceToUse
+            };
+            addToCart(itemWithFinalPrice);
         });
     }
 }
@@ -269,13 +288,13 @@ goToCheckoutBtn.addEventListener('click', () => {
         closeCartModal(); 
         window.location.href = 'checkout.html'; 
     } else {
-        alert('الرجاء إضافة منتجات إلى السلة أولاً.');
+        alert('Veuillez ajouter des produits à votre panier d\'abord.');
     }
 });
 
 cartModal.addEventListener('click', (e) => {
     if (e.target.closest('.cart-item') || e.target.classList.contains('remove-from-cart-btn')) {
-         handleCartControls(e);
+           handleCartControls(e);
     }
 });
 

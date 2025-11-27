@@ -1,4 +1,4 @@
-import { supabase } from '../supabase.js';
+import { supabase } from '../js/supabase.js';
 
 const adminContent = document.getElementById('adminContent');
 const authSection = document.getElementById('authSection');
@@ -22,6 +22,10 @@ const pendingOrdersCount = document.getElementById('pendingOrdersCount');
 
 const itemIdToEdit = document.getElementById('itemIdToEdit');
 const itemTableToEdit = document.getElementById('itemTableToEdit');
+
+const isOfferCheckbox = document.getElementById('isOffer');
+const offerPriceInput = document.getElementById('offerPrice');
+
 
 const PC_PART_CATEGORIES = ['cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'cooling'];
 const ALL_TABLES = ['products', 'pc_parts']; 
@@ -148,6 +152,10 @@ addForm.addEventListener('submit', async (e) => {
     const price = parseFloat(document.getElementById('productPrice').value);
     const image = document.getElementById('productImage').value; 
     const description = document.getElementById('productDesc').value;
+    
+    const isOffer = isOfferCheckbox.checked;
+    const offerPrice = isOffer ? (parseFloat(offerPriceInput.value) || null) : null;
+
     const stockQty = parseInt(stockQtyInput.value) || 0; 
 
     let targetTable;
@@ -168,7 +176,9 @@ addForm.addEventListener('submit', async (e) => {
             price,
             image_url: image,
             description,
-            stock_qty: stockQty 
+            stock_qty: stockQty,
+            is_offer: isOffer,
+            offer_price: offerPrice
         };
     } else {
         targetTable = 'products';
@@ -176,7 +186,9 @@ addForm.addEventListener('submit', async (e) => {
             name, category, price, 
             image_url: image,
             description,
-            stock_qty: stockQty 
+            stock_qty: stockQty,
+            is_offer: isOffer,
+            offer_price: offerPrice
         };
     }
 
@@ -236,6 +248,10 @@ async function editItem(e) {
         stockQtyInput.value = 0; 
     }
 
+    isOfferCheckbox.checked = data.is_offer || false;
+    offerPriceInput.value = data.offer_price !== null ? data.offer_price : '';
+
+
     toggleProductFields();
 
     formTitle.textContent = `✍️ تعديل العنصر ID: ${data.id} (${categoryValue})`;
@@ -256,6 +272,10 @@ function cancelEditMode() {
     submitBtn.style.color = 'white';
     cancelEditBtn.style.display = 'none';
     addForm.reset();
+    
+    isOfferCheckbox.checked = false; 
+    offerPriceInput.value = '';
+
     toggleProductFields();
     displayMessage(messageDisplay, '', 'info');
 }
@@ -285,14 +305,17 @@ async function loadAllItems() {
             table: 'products', 
             categoryKey: p.category, 
             displayCategory: CATEGORY_NAMES[p.category] || p.category, 
-            stockDisplay: `المخزون: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`
-        })),
+            stockDisplay: `المخزون: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`,
+            is_offer: p.is_offer || false
+        }))
+        ,
         ...partsResponse.data.map(p => ({ 
             ...p, 
             table: 'pc_parts', 
             categoryKey: p.type, 
             displayCategory: CATEGORY_NAMES[p.type] || p.type, 
-            stockDisplay: `المخزون: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`
+            stockDisplay: `المخزون: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`,
+            is_offer: p.is_offer || false
         }))
     ];
 
@@ -332,17 +355,24 @@ async function loadAllItems() {
 
             const isLowStock = item.stock_qty <= 5 && item.stock_qty > 0;
             const isOutOfStock = item.stock_qty === 0;
+            const isCurrentlyOffer = item.is_offer; 
             
             div.innerHTML = `
                 <div class="product-header">
                     <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}" />
                     <span class="product-id">ID: ${item.id}</span>
-                </div>
+                    ${isCurrentlyOffer ? '<span class="offer-tag">🔥 عرض</span>' : ''}
+                    </div>
                 <div class="product-info">
                     <h4>${item.name}</h4>
                     <p class="product-desc-short">${item.description ? item.description.substring(0, 50) + '...' : 'لا يوجد وصف متاح.'}</p>
                     <div class="price-stock-row">
-                        <strong class="product-price">${item.price ? item.price.toFixed(2) : '0.00'} DZD</strong>
+                        <strong class="product-price">
+                            ${isCurrentlyOffer && item.offer_price && item.offer_price < item.price 
+                                ? `<span style="text-decoration: line-through; color: #999; font-size: 0.8em;">${item.price.toFixed(2)} DZD</span> <span style="color: #dc3545;">${item.offer_price.toFixed(2)} DZD</span>`
+                                : `${item.price ? item.price.toFixed(2) : '0.00'} DZD`
+                            }
+                        </strong>
                         <p class="stock-info ${isOutOfStock ? 'out-of-stock' : (isLowStock ? 'low-stock' : '')}">
                             ${item.stockDisplay}
                         </p>

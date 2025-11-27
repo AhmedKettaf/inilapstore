@@ -11,17 +11,10 @@ const statusAlert = document.getElementById('statusAlert');
 let cart = [];
 let cartTotal = 0;
 
-/**
- * @description Calculates the total price of all items in the cart.
- * @returns {number} The total price.
- */
 function calculateCartTotal() {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 }
 
-/**
- * @description 
- */
 function loadAndRenderSummary() {
     const storedCart = localStorage.getItem('shoppingCart');
     cart = storedCart ? JSON.parse(storedCart) : [];
@@ -52,10 +45,6 @@ function loadAndRenderSummary() {
     submitCheckoutBtn.disabled = false;
 }
 
-/**
- * @description 
- * @param {Event} e 
- */
 async function handleCheckout(e) {
     e.preventDefault();
 
@@ -104,7 +93,7 @@ async function handleCheckout(e) {
         return;
     }
 
-    localStorage.removeItem('shoppingCart'); 
+    localStorage.removeItem('shoppingCart');
     cart = [];
     
     statusAlert.innerHTML = `
@@ -114,7 +103,7 @@ async function handleCheckout(e) {
         <a href="index.html" style="display: block; margin-top: 20px;">العودة إلى المتجر</a>
     `;
     
-    document.getElementById('checkoutContainer').style.display = 'none'; 
+    document.getElementById('checkoutContainer').style.display = 'none';
 }
 
 

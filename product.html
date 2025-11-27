@@ -1,51 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Product Details - Tech Store</title>
-    <link rel="stylesheet" href="product.css"> 
+    <title id="pageTitle">Détails du Produit - Tech Store</title>
+    <link rel="stylesheet" href="css/product.css"> 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <nav class="client-nav">
-        <h1>🛒 Tech Store</h1>
-        <p><a href="index.html" style="color: white; text-decoration: none;">← Back to Home</a></p>
+        <h1>INI LAP</h1>
+        <p><a href="index.html" style="color: white; text-decoration: none;">← Retour à l'accueil</a></p>
         
         <div class="cart-icon-container">
             <button id="openCartModalBtn" class="cart-btn">
-                🛒 Cart (<span id="cartCount">0</span>)
+                🛒 Panier (<span id="cartCount">0</span>)
             </button>
         </div>
     </nav>
 
     <main class="container">
         <section id="productDetails" class="details-section">
-            <div id="loadingIndicator">Loading item details...</div>
+            <div id="loadingIndicator">Chargement des détails de l'article...</div>
         </section>
         
         <div id="errorMessage" class="error-message" style="display: none;">
-            Item not found or an error occurred.
+            Article introuvable ou une erreur est survenue.
         </div>
     </main>
     
     <div id="cartModal" class="modal">
-        <div class="modal-content medium-modal">
-            <span id="closeCartBtn" class="close-button">&times;</span>
-            <h2>🛒 سلة المشتريات</h2>
+        <div class="modal-content medium-modal" dir="ltr"> <span id="closeCartBtn" class="close-button">&times;</span>
+            <h2>🛒 Mon Panier</h2>
             <div id="cartItemsContainer">
-                </div>
+             </div>
             <div class="cart-summary">
                 <strong>Total: <span id="cartTotal">0.00 DZD</span></strong>
             </div>
             
-            <button id="goToCheckoutBtn" class="checkout-btn">الانتقال لإتمام الشراء</button>
+            <button id="goToCheckoutBtn" class="checkout-btn">Passer à la caisse</button>
             
         </div>
     </div>
     
-    <script type="module" src="supabase.js"></script> 
-    <script type="module" src="product.js"></script> 
+    <script type="module" src="js/supabase.js"></script> 
+    <script type="module" src="js/product.js"></script> 
 </body>
 </html>

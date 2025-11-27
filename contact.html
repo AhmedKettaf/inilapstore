@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contactez-nous - INI LAP</title>
+    <link rel="stylesheet" href="css/client.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"> 
+</head>
+<body>
+
+    <nav class="client-nav">
+        <div class="nav-brand">
+            <h1>INI LAP</h1>
+            <p>Votre boutique unique pour PC Portables et Composants PC</p>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Accueil</a>
+            <a href="about.html">À Propos</a> 
+            <a href="offers.html">Offres</a> 
+            <a href="contact.html">Contactez-nous</a>
+        </div>
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="cart-icon-container">
+            <button id="openCartModalBtn" class="cart-btn">
+                🛒 Panier (<span id="cartCount">0</span>)
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="product-section">
+            <h2>📞 Contactez l'Équipe INI LAP</h2>
+            <p>Nous sommes là pour répondre à toutes vos questions concernant les produits, les commandes ou le support technique.</p>
+            
+            <div style="display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap;">
+                
+                <div style="flex: 2; min-width: 300px;">
+                    <h3 style="color: var(--primary-color);">Envoyez-nous un Message</h3>
+                    <form style="display: flex; flex-direction: column; gap: 15px; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: white;">
+                        <input type="text" placeholder="Votre Nom Complet" required style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                        <input type="email" placeholder="Votre Email" required style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                        <select style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;" required>
+                            <option value="">Sujet de la Demande</option>
+                            <option value="order">Question sur une commande</option>
+                            <option value="product">Information sur un produit</option>
+                            <option value="support">Support technique</option>
+                            <option value="other">Autre</option>
+                        </select>
+                        <textarea placeholder="Votre Message" rows="5" required style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+                        <button type="submit" class="details-btn">Envoyer le Message</button>
+                    </form>
+                </div>
+
+                <div style="flex: 1; min-width: 200px;">
+                    <h3 style="color: var(--primary-color);">Informations Directes</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 15px;"><strong>📍 Adresse:</strong> Sidi Bel abbes, Algérie</li>
+                        <li style="margin-bottom: 15px;"><strong>📧 Email:</strong> yazelaxstore@gmail.com</li>
+                        <li style="margin-bottom: 15px;"><strong>📞 Téléphone:</strong> +213 549 99 39 29</li>
+                        <li style="margin-bottom: 15px;"><strong>🟢 WhatsApp:</strong> <a href="https://wa.me/213549993929" target="_blank" style="color: var(--success-color); text-decoration: none;">Discuter maintenant</a></li>
+                    </ul>
+                    <hr>
+                    <h4 style="color: var(--price-color);">Heures d'Ouverture</h4>
+                    <p>Dimanche - Jeudi: 9h00 - 18h00</p>
+                    <p>Samedi: 9h00 - 14h00</p>
+                    <p>Vendredi: Fermé</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="cartModal" class="modal">
+        </div>
+    <footer class="site-footer">
+        </footer>
+    
+    <script type="module" src="js/supabase.js"></script> 
+    <script type="module" src="js/utility.js"></script> </body>
+</html>

@@ -1,121 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Store - Laptops & PC Parts</title>
-    <link rel="stylesheet" href="client.css">
+    <title>Accueil - Magasin Tech INI LAP</title>
+    <link rel="stylesheet" href="css/client.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"> 
 </head>
 <body>
 
     <nav class="client-nav">
         <div class="nav-brand">
             <h1>INI LAP</h1>
-            <p>Your one-stop shop for Laptops and PC Components</p>
+            <p>Votre boutique unique pour PC Portables et Composants PC</p>
         </div>
         
         <div class="nav-links">
-            <a href="#">الرئيسية</a>
-            <a href="#">تجميعات PC</a>
-            <a href="#">العروض</a>
-            <a href="#">تواصل معنا</a>
+            <a href="index.html">Accueil</a>
+            <a href="about.html">À Propos</a> 
+            <a href="offers.html">Offres</a> 
+            <a href="contact.html">Contactez-nous</a>
         </div>
+
+        <button class="menu-toggle" id="menuToggle">☰</button>
         
         <div class="cart-icon-container">
             <button id="openCartModalBtn" class="cart-btn">
-                🛒 سلة المشتريات (<span id="cartCount">0</span>)
+                🛒 Panier (<span id="cartCount">0</span>)
             </button>
         </div>
     </nav>
 
     <main class="container">
         
-        <p id="statusMessage" style="text-align: center; color: #007bff; margin-bottom: 20px;">Loading data...</p>
+        <p id="statusMessage" style="text-align: center; color: #007bff; margin-bottom: 20px;">Chargement des données...</p>
 
         <section id="productsSection" class="product-section">
-            <h2>💻 أجهزة كاملة وملحقات</h2>
+            <h2>💻 Systèmes Complets & Périphériques</h2>
             <div id="productFilters" class="filter-buttons">
-                <button data-category="all" class="filter-btn active">عرض الكل</button>
-                <button data-category="desktop_pc" class="filter-btn">Desktop PCs</button>
-                <button data-category="all_in_one" class="filter-btn">All-in-One</button>
-                <button data-category="laptop" class="filter-btn">Laptops</button>
-                <button data-category="prebuilt_pc" class="filter-btn">Prebuilt PCs</button>
-                <button data-category="monitor" class="filter-btn">Monitors</button>
-                <button data-category="accessory" class="filter-btn">Accessories</button>
-                <button data-category="software" class="filter-btn">Software</button>
-                <button data-category="network" class="filter-btn">Networking</button>
+                <button data-category="all" class="filter-btn active">Tout Afficher</button>
+                <button data-category="desktop_pc" class="filter-btn">PC de Bureau</button>
+                <button data-category="all_in_one" class="filter-btn">Tout-en-Un</button>
+                <button data-category="laptop" class="filter-btn">PC Portables</button>
+                <button data-category="prebuilt_pc" class="filter-btn">PC Préassemblés</button>
+                <button data-category="monitor" class="filter-btn">Moniteurs</button>
+                <button data-category="accessory" class="filter-btn">Accessoires</button>
+                <button data-category="software" class="filter-btn">Logiciels</button>
+                <button data-category="network" class="filter-btn">Réseaux</button>
             </div>
 
             <div id="productsGrid" class="product-grid">
-            </div>
-            <p id="noProductsFound" style="display: none; text-align: center; color: gray;">لا توجد منتجات متوفرة حالياً في هذه الفئة.</p>
+                </div>
+            <p id="noProductsFound" style="display: none; text-align: center; color: gray;">Aucun produit disponible dans cette catégorie pour le moment.</p>
         </section>
         
         <hr>
 
         <section id="pcPartsSection" class="product-section">
-            <h2>🛠️ قطع التجميعات (PC Parts)</h2>
+            <h2>🛠️ Composants PC (PC Parts)</h2>
             <div id="partsFilters" class="filter-buttons">
-                <button data-type="all" class="filter-btn active">عرض جميع القطع</button>
+                <button data-type="all" class="filter-btn active">Toutes les Pièces</button>
                 <button data-type="cpu" class="filter-btn">CPU</button>
                 <button data-type="gpu" class="filter-btn">GPU</button>
-                <button data-type="motherboard" class="filter-btn">Motherboard</button>
+                <button data-type="motherboard" class="filter-btn">Carte Mère</button>
                 <button data-type="ram" class="filter-btn">RAM</button>
-                <button data-type="storage" class="filter-btn">Storage</button>
+                <button data-type="storage" class="filter-btn">Stockage</button>
                 <button data-type="psu" class="filter-btn">PSU</button>
-                <button data-type="case" class="filter-btn">Case</button>
-                <button data-type="cooling" class="filter-btn">Cooling</button>
+                <button data-type="case" class="filter-btn">Boîtier</button>
+                <button data-type="cooling" class="filter-btn">Refroidissement</button>
             </div>
 
             <div id="pcPartsGrid" class="product-grid">
-            </div>
-            <p id="noPartsFound" style="display: none; text-align: center; color: gray;">لا توجد قطع كمبيوتر متوفرة حالياً في هذه الفئة.</p>
+                 </div>
+            <p id="noPartsFound" style="display: none; text-align: center; color: gray;">Aucun composant PC disponible dans cette catégorie pour le moment.</p>
         </section>
 
     </main>
     
-    <div id="detailsModal" class="modal">
+    <div id="detailsModal" class="modal"> 
         <div class="modal-content large-modal">
             <span class="close-button">&times;</span>
-            <div id="modalBody">
-                </div>
+            <div id="modalBody"></div>
         </div>
     </div>
     
     <div id="cartModal" class="modal">
         <div class="modal-content medium-modal">
             <span id="closeCartBtn" class="close-button">&times;</span>
-            <h2>🛒 سلة المشتريات</h2>
-            <div id="cartItemsContainer">
-                </div>
+            <h2>🛒 Votre Panier</h2>
+            <div id="cartItemsContainer"></div>
             <div class="cart-summary">
                 <strong>Total: <span id="cartTotal">0.00 DZD</span></strong>
             </div>
-            
-            <button id="goToCheckoutBtn" class="checkout-btn">الانتقال لإتمام الشراء</button>
-            
-            </div>
+            <button id="goToCheckoutBtn" class="checkout-btn">Passer à la Caisse</button>
+        </div>
     </div>
 
     <footer class="site-footer">
         <div class="container footer-grid">
             <div class="footer-about">
                 <h3>INI LAP</h3>
-                <p>وجهتك الأولى لأحدث أجهزة الكمبيوتر المحمولة وقطع تجميعات الألعاب والعمل بأفضل الأسعار وأسرع شحن.</p>
-                <p>&copy; 2025 INI LAP. جميع الحقوق محفوظة.</p>
+                <p>Votre première destination pour les derniers ordinateurs portables et composants de PC pour le gaming et le travail, aux meilleurs prix et avec une expédition rapide.</p>
+                <p>&copy; 2025 INI LAP. Tous droits réservés.</p>
             </div>
             <div class="footer-links">
-                <h4>روابط سريعة</h4>
+                <h4>Liens Rapides</h4>
                 <ul>
-                    <li><a href="#">عن الشركة</a></li>
-                    <li><a href="#">سياسة الخصوصية</a></li>
-                    <li><a href="#">شروط الاستخدام</a></li>
-                    <li><a href="#">الأسئلة الشائعة</a></li>
+                    <li><a href="about.html">À Propos de Nous</a></li>
+                    <li><a href="#">Politique de Confidentialité</a></li>
+                    <li><a href="#">Conditions d'Utilisation</a></li>
+                    <li><a href="#">FAQ</a></li>
                 </ul>
             </div>
             <div class="footer-social">
-                <h4>تواصل معنا</h4>
+                <h4>Suivez-nous</h4>
                 <div class="social-icons">
                     <a href="https://facebook.com/inilap" target="_blank" class="social-icon">📘</a>
                     <a href="https://instagram.com/inilap" target="_blank" class="social-icon">📸</a>
@@ -126,7 +125,6 @@
         </div>
     </footer>
     
-    <script type="module" src="supabase.js"></script> 
-    <script type="module" src="client.js"></script> 
-</body>
+    <script type="module" src="js/supabase.js"></script> 
+    <script type="module" src="js/client.js"></script> </body>
 </html>
