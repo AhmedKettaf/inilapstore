@@ -1,105 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard - Product Management</title>
+    <title>لوحة تحكم المدير - المتجر الإلكتروني</title>
     <link rel="stylesheet" href="admin.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <nav class="admin-nav">
-        <h2>💻 Admin Dashboard</h2>
+        <h2><i class="fas fa-tachometer-alt"></i> لوحة تحكم المدير</h2>
         <div class="nav-right">
             <div id="admin-auth-status"></div>
-            <button id="signOutBtn" style="display: none;">Sign Out</button>
+            <button id="signOutBtn" style="display: none;"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
         </div>
     </nav>
 
     <section id="authSection" class="auth-container">
-        <h3>🔑 Admin Login</h3>
+        <h3><i class="fas fa-lock"></i> تسجيل دخول المسؤول</h3>
         <form id="loginForm">
-            <label for="email">Email:</label>
+            <label for="email">البريد الإلكتروني:</label>
             <input type="email" id="email" required />
 
-            <label for="password">Password:</label>
+            <label for="password">كلمة المرور:</label>
             <input type="password" id="password" required />
 
-            <button type="submit">Log In</button>
+            <button type="submit">تسجيل الدخول</button>
             <p id="authMessage"></p>
         </form>
     </section>
     
     <section id="adminContent" class="admin-container" style="display: none;">
         
-        <h3 id="formTitle">➕ Add New Item (Product / PC Part)</h3>
+        <div class="tabs-control">
+            <button class="tab-btn active" data-tab="productsTab"><i class="fas fa-box-open"></i> إدارة المنتجات</button>
+            <button class="tab-btn" data-tab="ordersTab"><i class="fas fa-truck"></i> إدارة الطلبات <span id="pendingOrdersCount" class="badge"></span></button>
+        </div>
 
-        <form id="addProductForm">
-            <input type="hidden" id="itemIdToEdit" value="">
-            <input type="hidden" id="itemTableToEdit" value="">
-            
-            <label for="productName">Item Name:</label>
-            <input type="text" id="productName" required />
+        <div id="productsTab" class="tab-content active">
+            <h3 id="formTitle"><i class="fas fa-plus-circle"></i> إضافة / تعديل عنصر جديد</h3>
 
-            <label for="productCategory">Category:</label>
-            <select id="productCategory" required>
-                <option value="" disabled selected>Select Category</option>
-                <option value="desktop_pc">Desktop PC / حاسوب مكتبي</option>
-                <option value="all_in_one">All-in-One PC / الكل في واحد</option>
+            <form id="addProductForm">
+                <input type="hidden" id="itemIdToEdit" value="">
+                <input type="hidden" id="itemTableToEdit" value="">
                 
-                <option value="laptop">Laptop / جهاز محمول</option>
-                <option value="prebuilt_pc">Prebuilt PC / جهاز مجمع مسبقاً</option>
-                <option value="monitor">Monitor / شاشة عرض</option>
-                <option value="accessory">Accessory / ملحقات طرفية (كيبورد، ماوس، سماعات)</option>
-                <option value="software">Software / برمجيات</option>
-                <option value="network">Networking / شبكات (راوتر، إكستندر)</option>
-                
-                <option value="cpu">PC Part: CPU</option>
-                <option value="gpu">PC Part: GPU</option>
-                <option value="motherboard">PC Part: Motherboard</option>
-                <option value="ram">PC Part: RAM</option>
-                <option value="storage">PC Part: Storage</option>
-                <option value="psu">PC Part: PSU</option>
-                <option value="case">PC Part: Case</option>
-                <option value="cooling">PC Part: Cooling (Fans, Coolers)</option>
-            </select>
+                <label for="productName">اسم العنصر:</label>
+                <input type="text" id="productName" required />
 
-            <div id="pcPartTypeContainer" class="hidden-field" style="display: none;">
-                <label for="pcPartType">PC Part Type:</label>
-                <select id="pcPartType">
-                    <option value="cpu">CPU</option>
-                    <option value="gpu">GPU</option>
-                    <option value="ram">RAM</option>
-                    <option value="psu">PSU</option>
-                    <option value="case">Case</option>
-                    <option value="storage">Storage</option>
-                    <option value="motherboard">Motherboard</option>
+                <label for="productCategory">الفئة:</label>
+                <select id="productCategory" required>
+                    <option value="" disabled selected>اختر فئة</option>
+                    <option value="desktop_pc">حاسوب مكتبي</option>
+                    <option value="all_in_one">الكل في واحد</option>
+                    <option value="laptop">جهاز محمول</option>
+                    <option value="prebuilt_pc">جهاز مجمع مسبقاً</option>
+                    <option value="monitor">شاشة عرض</option>
+                    <option value="accessory">ملحقات طرفية</option>
+                    <option value="software">برمجيات</option>
+                    <option value="network">شبكات</option>
+                    
+                    <option value="cpu">قطعة كمبيوتر: معالج (CPU)</option>
+                    <option value="gpu">قطعة كمبيوتر: كرت شاشة (GPU)</option>
+                    <option value="motherboard">قطعة كمبيوتر: لوحة أم (Motherboard)</option>
+                    <option value="ram">قطعة كمبيوتر: ذاكرة عشوائية (RAM)</option>
+                    <option value="storage">قطعة كمبيوتر: تخزين (Storage)</option>
+                    <option value="psu">قطعة كمبيوتر: مزود طاقة (PSU)</option>
+                    <option value="case">قطعة كمبيوتر: صندوق (Case)</option>
+                    <option value="cooling">قطعة كمبيوتر: تبريد (Cooling)</option>
                 </select>
+
+                <div id="stockQtyContainer">
+                    <label for="stockQty">كمية المخزون:</label>
+                    <input type="number" id="stockQty" value="1" min="0" required />
+                </div>
+
+                <label for="productPrice">السعر (DZD):</label>
+                <input type="number" id="productPrice" step="0.01" min="0.01" required />
+
+                <label for="productImage">رابط الصورة (URL):</label>
+                <input type="url" id="productImage" required /> 
+                <label for="productDesc">الوصف:</label>
+                <textarea id="productDesc" rows="4" required></textarea>
+
+                <div class="form-actions">
+                    <button type="submit" id="submitBtn"><i class="fas fa-save"></i> إضافة عنصر</button>
+                    <button type="button" id="cancelEditBtn" style="display:none; background-color: #ffc107; color: #333;"><i class="fas fa-times"></i> إلغاء التعديل</button>
+                </div>
+                <p id="message"></p>
+            </form>
+
+            <hr>
+
+            <h3><i class="fas fa-clipboard-list"></i> قائمة العناصر (المنتجات وقطع الكمبيوتر)</h3>
+            <div id="productsList" class="admin-grid">
             </div>
+        </div>
 
-            <div id="stockQtyContainer" class="hidden-field" style="display: none;">
-                <label for="stockQty">Stock Quantity:</label>
-                <input type="number" id="stockQty" value="1" min="0" />
-            </div>
+        <div id="ordersTab" class="tab-content" style="display: none;">
+            <h3><i class="fas fa-list-alt"></i> جميع طلبات الزبائن</h3>
+            <div id="ordersList" class="orders-list">
+                </div>
+        </div>
 
-            <label for="productPrice">Price :</label>
-            <input type="number" id="productPrice" step="0.01" min="0.01" required />
-
-            <label for="productImage">Image URL:</label>
-            <input type="url" id="productImage" required /> 
-            <label for="productDesc">Description:</label>
-            <textarea id="productDesc" rows="4" required></textarea>
-
-            <button type="submit" id="submitBtn">Add Item</button>
-            <button type="button" id="cancelEditBtn" style="display:none; background-color: #ffc107;">Cancel Edit</button>
-            <p id="message"></p>
-        </form>
-
-        <hr>
-
-        <h3>📋 Items List (Products & PC Parts)</h3>
-        <div id="productsList" class="admin-grid">
-            </div>
     </section>
 
     <script type="module" src="supabase.js"></script> 

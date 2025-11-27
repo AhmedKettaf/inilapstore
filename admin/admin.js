@@ -9,6 +9,7 @@ const authMessage = document.getElementById('authMessage');
 
 const addForm = document.getElementById('addProductForm');
 const productsList = document.getElementById('productsList');
+const ordersList = document.getElementById('ordersList'); 
 const messageDisplay = document.getElementById('message');
 
 const formTitle = document.getElementById('formTitle');
@@ -16,13 +17,40 @@ const submitBtn = document.getElementById('submitBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const categorySelect = document.getElementById('productCategory');
 const stockQtyContainer = document.getElementById('stockQtyContainer');
-const stockQtyInput = document.getElementById('stockQty'); // تم تعريف المتغير هنا
+const stockQtyInput = document.getElementById('stockQty'); 
+const pendingOrdersCount = document.getElementById('pendingOrdersCount'); 
 
 const itemIdToEdit = document.getElementById('itemIdToEdit');
 const itemTableToEdit = document.getElementById('itemTableToEdit');
 
 const PC_PART_CATEGORIES = ['cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'cooling'];
 const ALL_TABLES = ['products', 'pc_parts']; 
+
+const ORDER_STATUSES = {
+    pending: 'في انتظار المراجعة',
+    processing: 'قيد التجهيز',
+    delivered: 'تم التوصيل',
+    canceled: 'ملغى'
+};
+
+const CATEGORY_NAMES = {
+    desktop_pc: 'حواسيب مكتبية',
+    all_in_one: 'الكل في واحد',
+    laptop: 'أجهزة محمولة',
+    prebuilt_pc: 'أجهزة مجمعة مسبقاً',
+    monitor: 'شاشات عرض',
+    accessory: 'ملحقات طرفية',
+    software: 'برمجيات',
+    network: 'شبكات',
+    cpu: 'قطع: معالجات (CPU)',
+    gpu: 'قطع: كروت شاشة (GPU)',
+    motherboard: 'قطع: لوحات أم (Motherboard)',
+    ram: 'قطع: ذاكرة عشوائية (RAM)',
+    storage: 'قطع: تخزين (Storage)',
+    psu: 'قطع: مزودات طاقة (PSU)',
+    case: 'قطع: صناديق (Case)',
+    cooling: 'قطع: تبريد (Cooling)',
+};
 
 function displayMessage(element, text, type) {
     element.textContent = text;
@@ -40,26 +68,26 @@ function displayMessage(element, text, type) {
     }
 }
 
-
 function toggleProductFields() {
-
     stockQtyContainer.style.display = 'block';
     stockQtyInput.required = true;
 }
 
-function updateUI(user) {
+async function updateUI(user) {
     if (user) {
         authSection.style.display = 'none';
         adminContent.style.display = 'block';
         signOutBtn.style.display = 'block';
-        adminAuthStatus.textContent = `Logged in as: ${user.email}`;
+        adminAuthStatus.textContent = `مرحبا: ${user.email}`;
         loadAllItems(); 
+        loadOrders(); 
     } else {
         authSection.style.display = 'block';
         adminContent.style.display = 'none';
         signOutBtn.style.display = 'none';
-        adminAuthStatus.textContent = 'Not logged in';
+        adminAuthStatus.textContent = 'لم يتم تسجيل الدخول';
         productsList.innerHTML = '';
+        ordersList.innerHTML = '';
         displayMessage(authMessage, '', 'info');
         displayMessage(messageDisplay, '', 'info');
     }
@@ -70,32 +98,27 @@ async function checkUserStatus() {
     updateUI(user);
 }
 
-
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-
-    displayMessage(authMessage, 'Logging in...', 'info');
-
+    displayMessage(authMessage, 'جاري تسجيل الدخول...', 'info');
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
     if (error) {
-        displayMessage(authMessage, `Login Error: ${error.message}`, 'error');
+        displayMessage(authMessage, `خطأ في تسجيل الدخول: ${error.message}`, 'error');
         return;
     }
-
-    displayMessage(authMessage, 'Login successful!', 'success');
+    displayMessage(authMessage, 'تم تسجيل الدخول بنجاح!', 'success');
     updateUI(data.user);
 });
 
 signOutBtn.addEventListener('click', async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-        alert('Error signing out: ' + error.message);
+        alert('خطأ في تسجيل الخروج: ' + error.message);
         return;
     }
-    alert('You have been signed out.');
+    alert('تم تسجيل الخروج بنجاح.');
     updateUI(null);
 });
 
@@ -111,11 +134,11 @@ addForm.addEventListener('submit', async (e) => {
     
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-        displayMessage(messageDisplay, '❌ You must be logged in to add/edit items.', 'error');
+        displayMessage(messageDisplay, '❌ يجب عليك تسجيل الدخول لإضافة/تعديل العناصر.', 'error');
         return;
     }
 
-    messageDisplay.textContent = '...Processing Item';
+    messageDisplay.textContent = '...جاري المعالجة';
     messageDisplay.style.color = 'gray';
     
     const id = itemIdToEdit.value;
@@ -184,21 +207,18 @@ addForm.addEventListener('submit', async (e) => {
     loadAllItems();
 });
 
-
 async function editItem(e) {
     const id = e.target.getAttribute('data-id');
     const table = e.target.getAttribute('data-table');
     
     addForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
 
-
     const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
     
     if (error || !data) {
-        alert('Error fetching item details: ' + error.message);
+        alert('خطأ في جلب تفاصيل العنصر: ' + error.message);
         return;
     }
-
 
     itemIdToEdit.value = data.id;
     itemTableToEdit.value = table;
@@ -207,11 +227,9 @@ async function editItem(e) {
     document.getElementById('productImage').value = data.image_url || ''; 
     document.getElementById('productDesc').value = data.description || '';
     
-
     const categoryValue = table === 'products' ? data.category : data.type;
     categorySelect.value = categoryValue;
     
-
     if (data.stock_qty !== undefined) {
         stockQtyInput.value = data.stock_qty;
     } else {
@@ -220,22 +238,20 @@ async function editItem(e) {
 
     toggleProductFields();
 
-
-    formTitle.textContent = `✍️ Edit Item ID: ${data.id} (${categoryValue})`;
-    submitBtn.textContent = 'Update Item';
+    formTitle.textContent = `✍️ تعديل العنصر ID: ${data.id} (${categoryValue})`;
+    submitBtn.textContent = 'تحديث العنصر';
     submitBtn.style.backgroundColor = '#ffc107'; 
     submitBtn.style.color = '#333';
     cancelEditBtn.style.display = 'inline-block';
     
-    displayMessage(messageDisplay, `Editing item: ${data.name}`, 'info');
+    displayMessage(messageDisplay, `جاري تعديل العنصر: ${data.name}`, 'info');
 }
-
 
 function cancelEditMode() {
     itemIdToEdit.value = '';
     itemTableToEdit.value = '';
-    formTitle.textContent = '➕ Add New Item (Product / PC Part)';
-    submitBtn.textContent = 'Add Item';
+    formTitle.textContent = '➕ إضافة / تعديل عنصر جديد';
+    submitBtn.textContent = 'إضافة عنصر';
     submitBtn.style.backgroundColor = '#28a745'; 
     submitBtn.style.color = 'white';
     cancelEditBtn.style.display = 'none';
@@ -246,13 +262,11 @@ function cancelEditMode() {
 
 cancelEditBtn.addEventListener('click', cancelEditMode);
 
-
-
 async function loadAllItems() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return; 
 
-    productsList.innerHTML = '<p>Loading items...</p>';
+    productsList.innerHTML = '<p class="loading-msg">جاري تحميل العناصر وتصنيفها...</p>';
 
     const [productsResponse, partsResponse] = await Promise.all(
         ALL_TABLES.map(table => supabase.from(table).select('*'))
@@ -261,7 +275,7 @@ async function loadAllItems() {
     productsList.innerHTML = '';
 
     if (productsResponse.error || partsResponse.error) {
-        productsList.innerHTML = '<p>❌ خطأ في تحميل المنتجات أو قطع الكمبيوتر.</p>';
+        productsList.innerHTML = '<p class="error-msg">❌ خطأ في تحميل المنتجات أو قطع الكمبيوتر.</p>';
         return;
     }
 
@@ -269,14 +283,16 @@ async function loadAllItems() {
         ...productsResponse.data.map(p => ({ 
             ...p, 
             table: 'products', 
-            displayCategory: p.category, 
-            stockDisplay: `Stock: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`
+            categoryKey: p.category, 
+            displayCategory: CATEGORY_NAMES[p.category] || p.category, 
+            stockDisplay: `المخزون: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`
         })),
         ...partsResponse.data.map(p => ({ 
             ...p, 
             table: 'pc_parts', 
-            displayCategory: p.type, 
-            stockDisplay: `Stock: ${p.stock_qty !== undefined ? p.stock_qty : '0'}` // يُعرض الكمية
+            categoryKey: p.type, 
+            displayCategory: CATEGORY_NAMES[p.type] || p.type, 
+            stockDisplay: `المخزون: ${p.stock_qty !== undefined ? p.stock_qty : '0'}`
         }))
     ];
 
@@ -285,24 +301,65 @@ async function loadAllItems() {
         return;
     }
 
-    allItems.forEach((item) => {
-        const div = document.createElement('div');
-        div.classList.add('admin-product');
+    const groupedItems = allItems.reduce((acc, item) => {
+        const category = item.categoryKey;
+        if (!acc[category]) {
+            acc[category] = {
+                name: item.displayCategory,
+                items: []
+            };
+        }
+        acc[category].items.push(item);
+        return acc;
+    }, {});
 
-        div.innerHTML = `
-            <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}" />
-            <h4>${item.name} (${item.displayCategory})</h4>
-            <p>${item.description || 'No description provided.'}</p>
-            <strong>$${item.price ? item.price.toFixed(2) : '0.00'}</strong>
-            <p class="stock-info">${item.stockDisplay}</p>
-            <button data-id="${item.id}" data-table="${item.table}" class="deleteBtn">حذف</button>
-            <button data-id="${item.id}" data-table="${item.table}" class="editBtn">تعديل</button>
+    for (const categoryKey in groupedItems) {
+        const categoryData = groupedItems[categoryKey];
+        const section = document.createElement('div');
+        section.classList.add('category-section');
+
+        section.innerHTML = `
+            <h3><i class="fas fa-tag"></i> ${categoryData.name} <span class="category-count">(${categoryData.items.length} عنصر)</span></h3>
+            <div class="category-grid">
+            </div>
         `;
+        
+        const categoryGrid = section.querySelector('.category-grid');
 
-        productsList.appendChild(div);
-    });
+        categoryData.items.forEach((item) => {
+            const div = document.createElement('div');
+            div.classList.add('admin-product-card');
 
+            const isLowStock = item.stock_qty <= 5 && item.stock_qty > 0;
+            const isOutOfStock = item.stock_qty === 0;
+            
+            div.innerHTML = `
+                <div class="product-header">
+                    <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}" />
+                    <span class="product-id">ID: ${item.id}</span>
+                </div>
+                <div class="product-info">
+                    <h4>${item.name}</h4>
+                    <p class="product-desc-short">${item.description ? item.description.substring(0, 50) + '...' : 'لا يوجد وصف متاح.'}</p>
+                    <div class="price-stock-row">
+                        <strong class="product-price">${item.price ? item.price.toFixed(2) : '0.00'} DZD</strong>
+                        <p class="stock-info ${isOutOfStock ? 'out-of-stock' : (isLowStock ? 'low-stock' : '')}">
+                            ${item.stockDisplay}
+                        </p>
+                    </div>
+                </div>
+                <div class="product-actions-footer">
+                    <button data-id="${item.id}" data-table="${item.table}" class="editBtn"><i class="fas fa-edit"></i> تعديل</button>
+                    <button data-id="${item.id}" data-table="${item.table}" class="deleteBtn"><i class="fas fa-trash"></i> حذف</button>
+                </div>
+            `;
 
+            categoryGrid.appendChild(div);
+        });
+        
+        productsList.appendChild(section);
+    }
+    
     document.querySelectorAll('.deleteBtn').forEach((btn) => {
         btn.addEventListener('click', deleteItem);
     });
@@ -312,11 +369,10 @@ async function loadAllItems() {
     });
 }
 
-
 async function deleteItem(e) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-        alert('❌ You must be logged in to delete items.');
+        alert('❌ يجب عليك تسجيل الدخول لحذف العناصر.');
         return;
     }
 
@@ -337,6 +393,115 @@ async function deleteItem(e) {
     alert('تم الحذف بنجاح!');
     loadAllItems();
 }
+
+async function loadOrders() {
+    ordersList.innerHTML = '<p>جاري تحميل الطلبات...</p>';
+    
+    const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('id', { ascending: false }); 
+
+    if (error) {
+        ordersList.innerHTML = `<p>❌ خطأ في تحميل الطلبات: ${error.message}</p>`;
+        return;
+    }
+
+    if (orders.length === 0) {
+        ordersList.innerHTML = '<p>لا توجد طلبات لعرضها.</p>';
+        pendingOrdersCount.style.display = 'none';
+        return;
+    }
+    
+    ordersList.innerHTML = '';
+    
+    let pendingCount = 0;
+
+    orders.forEach(order => {
+        if (order.status === 'pending') {
+            pendingCount++;
+        }
+        
+        const card = document.createElement('div');
+        card.classList.add('order-card');
+        
+        const statusClass = `status-${order.status}`;
+        const statusText = ORDER_STATUSES[order.status] || order.status;
+        
+        const itemsList = order.order_items.map(item => `
+            <li>${item.name} (x${item.qty}) - ${item.price.toFixed(2)} DZD</li>
+        `).join('');
+
+        card.innerHTML = `
+            <div class="order-details">
+                <h4>طلب #${order.id} | ${order.full_name} (${order.phone_number})</h4>
+                <p><strong>الولاية:</strong> ${order.wilaya}</p>
+                <p><strong>العناصر:</strong></p>
+                <ul>${itemsList}</ul>
+            </div>
+            <div class="order-total">${order.total_price.toFixed(2)} DZD</div>
+            <div class="order-status ${statusClass}">${statusText}</div>
+            <div class="order-actions">
+                <select class="status-select" data-id="${order.id}">
+                    ${Object.entries(ORDER_STATUSES).map(([key, value]) => `
+                        <option value="${key}" ${key === order.status ? 'selected' : ''}>${value}</option>
+                    `).join('')}
+                </select>
+            </div>
+        `;
+        
+        ordersList.appendChild(card);
+    });
+    
+    pendingOrdersCount.textContent = pendingCount > 0 ? pendingCount : '';
+    pendingOrdersCount.style.display = pendingCount > 0 ? 'inline' : 'none';
+
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', updateOrderStatus);
+    });
+}
+
+async function updateOrderStatus(e) {
+    const orderId = e.target.getAttribute('data-id');
+    const newStatus = e.target.value;
+    
+    if (!confirm(`هل أنت متأكد من تغيير حالة الطلب #${orderId} إلى: ${ORDER_STATUSES[newStatus]}؟`)) {
+        e.target.value = e.target.options[e.target.selectedIndex].defaultSelected ? e.target.options[e.target.selectedIndex].value : e.target.value;
+        return;
+    }
+    
+    const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+    if (error) {
+        alert(`❌ خطأ في تحديث حالة الطلب: ${error.message}`);
+        loadOrders(); 
+        return;
+    }
+    
+    alert(`✅ تم تحديث حالة الطلب #${orderId} إلى ${ORDER_STATUSES[newStatus]} بنجاح.`);
+    loadOrders();
+}
+
+document.querySelectorAll('.tab-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const targetTab = e.target.getAttribute('data-tab');
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+        document.getElementById(targetTab).style.display = 'block';
+
+        if (targetTab === 'ordersTab') {
+            loadOrders(); 
+        } else if (targetTab === 'productsTab') {
+            loadAllItems(); 
+        }
+    });
+});
 
 
 document.addEventListener('DOMContentLoaded', () => {
