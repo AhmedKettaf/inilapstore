@@ -1,130 +1,292 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accueil - Magasin Tech INI LAP</title>
-    <link rel="stylesheet" href="css/client.css">
+    <title>Home - INI VOLT Tech Store (Gaming Edition)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#E53935',
+                        'secondary-accent': '#FFD700',
+                        'dark-bg': '#0D0D0D',
+                        'light-bg': '#1A1A1A',
+                        'secondary-text': '#9E9E9E',
+                        'price-color': '#FF0000',
+                        'success-color': '#28a745',
+                        'footer-bg': '#000000',
+                        'footer-text': '#9E9E9E',
+                        'glass-bg': 'rgba(26, 26, 26, 0.5)',
+                        'glass-border': 'rgba(255, 255, 255, 0.1)',
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    keyframes: {
+                        pulse: {
+                            '0%, 100%': { opacity: '1', transform: 'scale(1.00)' },
+                            '50%': { opacity: '0.9', transform: 'scale(1.02)' }, 
+                        },
+                        glow: {
+                            '0%, 100%': { textShadow: '0 0 5px #FFD700, 0 0 15px #FFD700' },
+                            '50%': { textShadow: '0 0 10px #E53935, 0 0 30px #E53935' },
+                        }
+                    },
+                    animation: {
+                        pulse: 'pulse 2s infinite alternate ease-in-out',
+                        glow: 'glow 3s infinite alternate ease-in-out',
+                    }
+                }
+            }
+        }
+    </script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"> 
 </head>
-<body>
 
-    <nav class="client-nav">
-        <div class="nav-brand">
-            <h1>INI LAP</h1>
-            <p>Votre boutique unique pour PC Portables et Composants PC</p>
+<body class="font-sans bg-dark-bg text-white m-0 p-0">
+
+    <nav class="client-nav flex justify-between items-center px-8 py-4 bg-footer-bg text-white shadow-xl sticky top-0 z-50 border-b-2 border-primary">
+        <div class="nav-brand flex items-center gap-4">
+            <h1 class="m-0 text-3xl tracking-widest text-primary font-bold">INI VOLT</h1>
+            <p class="m-0 mt-1 text-xs text-secondary-text hidden lg:block">Your HQ for Gaming PC & Components</p>
         </div>
         
-        <div class="nav-links">
-            <a href="index.html">Accueil</a>
-            <a href="about.html">À Propos</a> 
-            <a href="offers.html">Offres</a> 
-            <a href="contact.html">Contactez-nous</a>
-        </div>
-
-        <button class="menu-toggle" id="menuToggle">☰</button>
-        
-        <div class="cart-icon-container">
-            <button id="openCartModalBtn" class="cart-btn">
-                🛒 Panier (<span id="cartCount">0</span>)
+        <div class="hidden lg:flex flex-1 max-w-lg mx-8">
+            <input type="search" placeholder="Search components, laptops..." class="w-full p-2 rounded-l-md bg-light-bg text-white border border-primary/50 focus:border-secondary-accent focus:outline-none placeholder-secondary-text transition duration-300">
+            <button class="bg-primary text-white p-2 rounded-r-md hover:bg-red-700 transition duration-300">
+                <i class="fa-solid fa-magnifying-glass"></i>
             </button>
         </div>
-    </nav>
-
-    <main class="container">
         
-        <p id="statusMessage" style="text-align: center; color: #007bff; margin-bottom: 20px;">Chargement des données...</p>
+        <div class="nav-actions flex items-center space-x-6">
+            <div class="nav-links hidden md:flex space-x-4" id="navLinks">
+                <a href="index.html" class="text-white text-lg font-medium transition duration-300 hover:text-secondary-accent hover:border-b-2 hover:border-secondary-accent pb-1 border-b-2 border-primary">Home</a>
+                <a href="offers.html" class="text-white text-lg font-medium transition duration-300 hover:text-secondary-accent hover:border-b-2 hover:border-secondary-accent pb-1 border-b-2 border-transparent">Offers</a> 
+                <a href="contact.html" class="text-white text-lg font-medium transition duration-300 hover:text-secondary-accent hover:border-b-2 hover:border-secondary-accent pb-1 border-b-2 border-transparent">Contact</a>
+            </div>
+            
+            <div class="cart-icon-container">
+                <button id="openCartModalBtn" class="cart-btn bg-primary text-white border-none px-4 py-2 rounded-md cursor-pointer transition duration-300 font-semibold flex items-center gap-2 hover:bg-red-700 shadow-lg shadow-primary/30">
+                    <i class="fa-solid fa-cart-shopping"></i> Cart (<span id="cartCount">0</span>)
+                </button>
+            </div>
+            
+            <button class="menu-toggle md:hidden bg-transparent border-none text-secondary-accent text-3xl cursor-pointer p-1 order-3" id="menuToggle">☰</button>
+        </div>
+
+        <div class="nav-links-mobile absolute top-[62px] left-0 w-full bg-footer-bg shadow-xl flex-col z-40 p-0 transition-transform duration-300 ease-out transform -translate-x-full md:hidden" id="mobileNavLinks">
+            <a href="index.html" class="block text-white p-3.5 border-b border-white/10 hover:bg-white/10">Home</a>
+            <a href="offers.html" class="block text-white p-3.5 border-b border-white/10 hover:bg-white/10">Offers</a> 
+            <a href="contact.html" class="block text-white p-3.5 border-b border-white/10 hover:bg-white/10">Contact</a>
+            <a href="about.html" class="block text-white p-3.5 border-b border-white/10 hover:bg-white/10">About Us</a> 
+        </div>
+    </nav>
+    <header class="hero-section bg-cover bg-center h-[70vh] flex items-center justify-center text-center relative overflow-hidden" 
+            style="background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/24526.jpeg');">
+        
+        <div class="absolute inset-0 bg-black/70"></div>
+        
+        <div class="relative z-10 p-4 max-w-4xl">
+            <h2 class="text-6xl sm:text-7xl font-extrabold mb-4 uppercase leading-tight tracking-wider text-secondary-accent animate-glow">
+                DOMINATE THE GAME
+            </h2>
+            <p class="text-xl sm:text-2xl text-white mb-8 font-medium">
+                Gaming PCs, Components, Peripherals: Top tech at the best prices.
+            </p>
+            <a href="#productsSection" class="inline-block px-10 py-4 bg-primary text-white font-bold text-lg rounded-full shadow-2xl transition duration-300 transform hover:scale-105 hover:bg-red-700 animate-pulse border-2 border-secondary-accent">
+                DISCOVER OUR OFFERS
+            </a>
+        </div>
+    </header>
+    <div class="max-w-7xl mx-auto px-5 my-6 -mt-16 relative z-20">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-light-bg rounded-xl border border-primary/50 shadow-2xl">
+            
+            <div class="flex items-center gap-3 text-secondary-text">
+                <span class="text-3xl text-secondary-accent font-bold">🛠️</span> 
+                <div>
+                    <p class="text-white font-semibold mb-0">Great Support 24/7</p>
+                    <p class="text-xs text-secondary-text">We care about your experience.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 text-secondary-text">
+                <span class="text-3xl text-primary font-bold">🚀</span> 
+                <div>
+                    <p class="text-white font-semibold mb-0">Fast Delivery</p>
+                    <p class="text-xs text-secondary-text">100% fast shipping across Algeria.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-secondary-text">
+                <span class="text-3xl text-secondary-accent font-bold">💵</span> 
+                <div>
+                    <p class="text-white font-semibold mb-0">Cash On Delivery</p>
+                    <p class="text-xs text-secondary-text">Pay only upon reception.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 text-secondary-text">
+                <span class="text-3xl text-primary font-bold">🔒</span> 
+                <div>
+                    <p class="text-white font-semibold mb-0">Secure Payment</p>
+                    <p class="text-xs text-secondary-text">Secured online payment methods.</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <main class="container max-w-7xl mx-auto my-8 px-5 min-h-screen">
+        
+        <p id="statusMessage" class="text-center font-bold p-2 bg-light-bg rounded-md mb-5 text-secondary-accent border border-secondary-accent animate-pulse">Loading data...</p>
 
         <section id="productsSection" class="product-section">
-            <h2>💻 Systèmes Complets & Périphériques</h2>
-            <div id="productFilters" class="filter-buttons">
-                <button data-category="all" class="filter-btn active">Tout Afficher</button>
-                <button data-category="desktop_pc" class="filter-btn">PC de Bureau</button>
-                <button data-category="all_in_one" class="filter-btn">Tout-en-Un</button>
-                <button data-category="laptop" class="filter-btn">PC Portables</button>
-                <button data-category="prebuilt_pc" class="filter-btn">PC Préassemblés</button>
-                <button data-category="monitor" class="filter-btn">Moniteurs</button>
-                <button data-category="accessory" class="filter-btn">Accessoires</button>
-                <button data-category="software" class="filter-btn">Logiciels</button>
-                <button data-category="network" class="filter-btn">Réseaux</button>
+            <h2 class="text-primary border-b-4 border-primary pb-2 mt-10 mb-6 font-bold text-3xl">💻 Complete Systems & Peripherals</h2>
+            
+            <div id="productFilters" class="filter-buttons flex flex-wrap gap-3 mb-8 p-4 bg-light-bg rounded-xl justify-center sm:justify-start overflow-x-auto whitespace-nowrap border border-gray-700">
+                <button data-category="all" class="filter-btn px-4 py-2 border rounded-full cursor-pointer text-sm transition duration-300 font-bold bg-primary text-white border-primary shadow-lg hover:bg-red-700">Show All</button>
+                <button data-category="desktop_pc" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Desktop PCs</button>
+                <button data-category="all_in_one" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">All-in-One</button>
+                <button data-category="laptop" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Laptops</button>
+                <button data-category="prebuilt_pc" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Prebuilt PCs</button>
+                <button data-category="monitor" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Monitors</button>
+                <button data-category="accessory" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Accessories</button>
+                <button data-category="software" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Software</button>
+                <button data-category="network" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Networking</button>
             </div>
 
-            <div id="productsGrid" class="product-grid">
+            <div id="productsGrid" class="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+                <div class="product-card bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl shadow-2xl p-4 flex flex-col transition duration-300 hover:shadow-[0_0_20px_rgba(229,57,53,0.4)]">
+                    <img src="[Image URL]" alt="Product Name" class="w-full h-40 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-bold text-white mb-2">Product Name</h3>
+                    <p class="text-secondary-text text-sm flex-grow">Short description of the product...</p>
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-price-color text-2xl font-extrabold">120,000 DZD</span>
+                        <div class="flex space-x-2">
+                            <button onclick="openDetailsModal('[Product ID]')" class="p-2 bg-secondary-accent text-dark-bg rounded-md hover:bg-primary transition duration-300 group">
+                                <i class="fa-solid fa-eye group-hover:text-white transition duration-300"></i>
+                            </button>
+                            <button onclick="addToCart('[Product ID]')" class="p-2 bg-primary text-white rounded-md hover:bg-red-700 transition duration-300">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            <p id="noProductsFound" style="display: none; text-align: center; color: gray;">Aucun produit disponible dans cette catégorie pour le moment.</p>
+                
+            </div>
+            <p id="noProductsFound" class="hidden text-center text-secondary-text mt-10">No products found in this category yet.</p>
         </section>
         
-        <hr>
+        <hr class="border-t border-gray-700 my-12">
 
         <section id="pcPartsSection" class="product-section">
-            <h2>🛠️ Composants PC (PC Parts)</h2>
-            <div id="partsFilters" class="filter-buttons">
-                <button data-type="all" class="filter-btn active">Toutes les Pièces</button>
-                <button data-type="cpu" class="filter-btn">CPU</button>
-                <button data-type="gpu" class="filter-btn">GPU</button>
-                <button data-type="motherboard" class="filter-btn">Carte Mère</button>
-                <button data-type="ram" class="filter-btn">RAM</button>
-                <button data-type="storage" class="filter-btn">Stockage</button>
-                <button data-type="psu" class="filter-btn">PSU</button>
-                <button data-type="case" class="filter-btn">Boîtier</button>
-                <button data-type="cooling" class="filter-btn">Refroidissement</button>
+            <h2 class="text-primary border-b-4 border-primary pb-2 mt-10 mb-6 font-bold text-3xl">🛠️ PC Components (PC Parts)</h2>
+            
+            <div id="partsFilters" class="filter-buttons flex flex-wrap gap-3 mb-8 p-4 bg-light-bg rounded-xl justify-center sm:justify-start overflow-x-auto whitespace-nowrap border border-gray-700">
+                <button data-type="all" class="filter-btn px-4 py-2 border rounded-full cursor-pointer text-sm transition duration-300 font-bold bg-primary text-white border-primary shadow-lg hover:bg-red-700">Show All Parts</button>
+                <button data-type="cpu" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">CPU</button>
+                <button data-type="gpu" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">GPU</button>
+                <button data-type="motherboard" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Motherboard</button>
+                <button data-type="ram" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">RAM</button>
+                <button data-type="storage" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Storage</button>
+                <button data-type="psu" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">PSU</button>
+                <button data-type="case" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Case</button>
+                <button data-type="cooling" class="filter-btn px-4 py-2 border border-secondary-accent bg-dark-bg text-secondary-accent rounded-full cursor-pointer text-sm transition duration-300 hover:bg-secondary-accent/20 hover:text-white">Cooling</button>
             </div>
 
-            <div id="pcPartsGrid" class="product-grid">
-                 </div>
-            <p id="noPartsFound" style="display: none; text-align: center; color: gray;">Aucun composant PC disponible dans cette catégorie pour le moment.</p>
+            <div id="pcPartsGrid" class="product-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+                </div>
+            <p id="noPartsFound" class="hidden text-center text-secondary-text mt-10">No PC components available in this category yet.</p>
         </section>
 
     </main>
     
-    <div id="detailsModal" class="modal"> 
-        <div class="modal-content large-modal">
-            <span class="close-button">&times;</span>
-            <div id="modalBody"></div>
+    <div id="detailsModal" class="modal fixed inset-0 z-[1000] overflow-auto bg-black/80 hidden"> 
+        <div class="modal-content large-modal bg-light-bg mx-auto my-[5%] p-8 rounded-xl shadow-2xl relative w-11/12 max-w-4xl border border-primary/50">
+            <span class="close-button text-secondary-text float-right text-4xl font-bold cursor-pointer leading-none hover:text-primary transition duration-300">&times;</span>
+            <div id="modalBody" class="text-white"></div>
         </div>
     </div>
     
-    <div id="cartModal" class="modal">
-        <div class="modal-content medium-modal">
-            <span id="closeCartBtn" class="close-button">&times;</span>
-            <h2>🛒 Votre Panier</h2>
-            <div id="cartItemsContainer"></div>
-            <div class="cart-summary">
-                <strong>Total: <span id="cartTotal">0.00 DZD</span></strong>
+    <div id="cartModal" class="modal fixed inset-0 z-[1000] overflow-auto bg-black/80 hidden">
+        <div class="modal-content medium-modal bg-light-bg mx-auto my-[5%] p-8 rounded-xl shadow-2xl relative w-11/12 max-w-md border border-primary/50">
+            <span id="closeCartBtn" class="close-button text-secondary-text float-right text-4xl font-bold cursor-pointer leading-none hover:text-primary transition duration-300">&times;</span>
+            <h2 class="text-white text-2xl border-b-2 border-primary/50 pb-2 mb-4"><i class="fa-solid fa-cart-shopping"></i> Your Cart</h2>
+            <div id="cartItemsContainer" class="text-secondary-text"></div>
+            <div class="cart-summary text-right pt-4 border-t-2 border-primary mt-4 text-xl text-white">
+                <strong>Total: <span id="cartTotal" class="text-secondary-accent font-extrabold">0.00 DZD</span></strong>
             </div>
-            <button id="goToCheckoutBtn" class="checkout-btn">Passer à la Caisse</button>
+            <button id="goToCheckoutBtn" class="checkout-btn w-full p-3 bg-primary text-white border-none rounded-lg cursor-pointer text-lg transition duration-300 font-semibold hover:bg-red-700 mt-4 shadow-lg shadow-primary/30">Proceed to Checkout</button>
         </div>
     </div>
 
-    <footer class="site-footer">
-        <div class="container footer-grid">
-            <div class="footer-about">
-                <h3>INI LAP</h3>
-                <p>Votre première destination pour les derniers ordinateurs portables et composants de PC pour le gaming et le travail, aux meilleurs prix et avec une expédition rapide.</p>
-                <p>&copy; 2025 INI LAP. Tous droits réservés.</p>
+    <footer class="site-footer bg-footer-bg text-footer-text py-10 text-sm border-t-4 border-secondary-accent">
+        <div class="container footer-grid max-w-7xl mx-auto px-5 grid grid-cols-2 md:grid-cols-4 gap-8">
+            
+            <div class="footer-about col-span-2 md:col-span-1">
+                <h3 class="text-primary text-3xl mb-3 font-bold">INI LAP</h3>
+                <p class="mb-4 leading-relaxed">Your primary destination for gaming hardware at the best prices and with fast shipping.</p>
+                <p class="mt-2 text-secondary-accent font-bold">Payment Options: Cash On Delivery.</p>
+                <p class="mt-4">&copy; 2025 INI LAP.</p>
             </div>
-            <div class="footer-links">
-                <h4>Liens Rapides</h4>
-                <ul>
-                    <li><a href="about.html">À Propos de Nous</a></li>
-                    <li><a href="#">Politique de Confidentialité</a></li>
-                    <li><a href="#">Conditions d'Utilisation</a></li>
-                    <li><a href="#">FAQ</a></li>
+            
+            <div class="footer-contact">
+                <h4 class="text-white text-xl border-b-2 border-primary pb-1 mb-4"><i class="fa-solid fa-headset"></i> Customer Support</h4>
+                <ul class="list-none p-0">
+                    <li class="mb-2">
+                        <strong class="text-secondary-accent">Phone 1:</strong> <a href="tel:0549993929" class="text-footer-text hover:text-primary transition duration-300">0549993929</a>
+                    </li>
+                    <li class="mb-2">
+                        <strong class="text-secondary-accent">Phone 2:</strong> <a href="tel:0665927537" class="text-footer-text hover:text-primary transition duration-300">0665927537</a>
+                    </li>
+                    <li class="mb-2">
+                        <strong class="text-secondary-accent">Email:</strong> <a href="mailto:yazelaxstore@gmail.com" class="text-footer-text hover:text-primary transition duration-300">yazelaxstore@gmail.com</a>
+                    </li>
+                    <li class="mb-2">
+                        <strong class="text-secondary-accent">Location:</strong> Sidi Bel abbes, Algeria
+                    </li>
                 </ul>
             </div>
-            <div class="footer-social">
-                <h4>Suivez-nous</h4>
-                <div class="social-icons">
-                    <a href="https://facebook.com/inilap" target="_blank" class="social-icon">📘</a>
-                    <a href="https://instagram.com/inilap" target="_blank" class="social-icon">📸</a>
-                    <a href="https://twitter.com/inilap" target="_blank" class="social-icon">🐦</a>
-                    <a href="https://wa.me/213xxxxxxxxx" target="_blank" class="social-icon">🟢</a>
+            
+            <div class="footer-categories">
+                <h4 class="text-white text-xl border-b-2 border-primary pb-1 mb-4"><i class="fa-solid fa-gamepad"></i> Categories</h4>
+                <ul class="list-none p-0 grid grid-cols-1 gap-1">
+                    <li><a href="index.html?section=pc_components" class="text-footer-text hover:text-secondary-accent transition duration-300">PC Components</a></li>
+                    <li><a href="index.html?category=desktop_pc" class="text-footer-text hover:text-secondary-accent transition duration-300">Desktop PCs</a></li>
+                    <li><a href="index.html?category=laptop" class="text-footer-text hover:text-secondary-accent transition duration-300">Laptops</a></li>
+                    <li><a href="index.html?category=accessory" class="text-footer-text hover:text-secondary-accent transition duration-300">Peripherals</a></li>
+                    <li><a href="index.html?category=console" class="text-footer-text hover:text-secondary-accent transition duration-300">Consoles</a></li>
+                    <li><a href="index.html?category=network" class="text-footer-text hover:text-secondary-accent transition duration-300">Networking & Software</a></li>
+                    <li><a href="offers.html" class="text-footer-text hover:text-secondary-accent transition duration-300">Special Offers</a></li>
+                    <li><a href="index.html" class="text-footer-text hover:text-secondary-accent transition duration-300">All Categories</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links-social">
+                <h4 class="text-white text-xl border-b-2 border-primary pb-1 mb-4"><i class="fa-solid fa-link"></i> Info & Follow</h4>
+                <ul class="list-none p-0 mb-6">
+                    <li><a href="about.html" class="text-footer-text leading-loose hover:text-secondary-accent transition duration-300">About Us</a></li>
+                    <li><a href="#" class="text-footer-text leading-loose hover:text-secondary-accent transition duration-300">Privacy Policy</a></li>
+                    <li><a href="#" class="text-footer-text leading-loose hover:text-secondary-accent transition duration-300">FAQ</a></li>
+                </ul>
+                
+                <h4 class="text-white text-xl border-b-2 border-secondary-accent pb-1 mb-4"><i class="fa-solid fa-globe"></i> Follow Us</h4>
+                <div class="social-icons flex gap-4 text-2xl">
+                    <a href="https://www.facebook.com/kettaf.stationery" target="_blank" class="text-secondary-accent transition duration-200 hover:translate-y-[-3px] hover:text-primary"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="https://wa.me/213549993929" target="_blank" class="text-secondary-accent transition duration-200 hover:translate-y-[-3px] hover:text-primary"><i class="fa-brands fa-whatsapp"></i></a>
                 </div>
             </div>
+
         </div>
     </footer>
-    
     <script type="module" src="js/supabase.js"></script> 
-    <script type="module" src="js/client.js"></script> </body>
+    <script type="module" src="js/client.js"></script> 
+</body>
 </html>

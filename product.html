@@ -1,49 +1,107 @@
 <!DOCTYPE html>
-<html lang="fr" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Détails du Produit - Tech Store</title>
-    <link rel="stylesheet" href="css/product.css"> 
+    <title id="pageTitle">Product Details - INI VOLT</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#E53935',
+                        'secondary-accent': '#FFD700',
+                        'dark-bg': '#0D0D0D',
+                        'light-bg': '#1A1A1A',
+                        'secondary-text': '#9E9E9E',
+                        'price-color': '#FF0000',
+                        'success-color': '#28a745',
+                        'footer-bg': '#000000',
+                        'footer-text': '#9E9E9E',
+                        'glass-bg': 'rgba(26, 26, 26, 0.5)',
+                        'glass-border': 'rgba(255, 255, 255, 0.1)',
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    keyframes: {
+                        pulse: {
+                            '0%, 100%': { opacity: '1', transform: 'scale(1.00)' },
+                            '50%': { opacity: '0.9', transform: 'scale(1.02)' }, 
+                        },
+                        glow: {
+                            '0%, 100%': { textShadow: '0 0 5px #FFD700, 0 0 15px #FFD700' },
+                            '50%': { textShadow: '0 0 10px #E53935, 0 0 30px #E53935' },
+                        }
+                    },
+                    animation: {
+                        pulse: 'pulse 2s infinite alternate ease-in-out',
+                        glow: 'glow 3s infinite alternate ease-in-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
 
-    <nav class="client-nav">
-        <h1>INI LAP</h1>
-        <p><a href="index.html" style="color: white; text-decoration: none;">← Retour à l'accueil</a></p>
+<body class="font-sans bg-dark-bg text-white m-0 p-0 min-h-screen">
+
+    <nav class="client-nav flex justify-between items-center px-8 py-4 bg-footer-bg text-white shadow-xl sticky top-0 z-50 border-b-2 border-primary">
+        <div class="nav-brand flex flex-col sm:flex-row sm:items-baseline gap-4">
+            <h1 class="m-0 text-3xl tracking-widest text-primary font-bold">INI VOLT</h1>
+            <p class="m-0 mt-1 text-sm text-secondary-text">
+                <a href="index.html" class="text-secondary-accent hover:text-price-color transition duration-300 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Home
+                </a>
+            </p>
+        </div>
         
         <div class="cart-icon-container">
-            <button id="openCartModalBtn" class="cart-btn">
-                🛒 Panier (<span id="cartCount">0</span>)
+            <button id="openCartModalBtn" class="cart-btn bg-primary text-white border-none px-4 py-2 rounded-md cursor-pointer transition duration-300 font-semibold flex items-center gap-2 hover:bg-red-700 shadow-lg shadow-primary/30">
+                <i class="fa-solid fa-cart-shopping"></i> Cart (<span id="cartCount">0</span>)
             </button>
         </div>
     </nav>
 
-    <main class="container">
+    <main class="container max-w-7xl mx-auto my-12 px-5 min-h-screen">
+        
         <section id="productDetails" class="details-section">
-            <div id="loadingIndicator">Chargement des détails de l'article...</div>
+            <div id="loadingIndicator" class="text-center text-secondary-accent font-bold p-10 bg-light-bg rounded-xl shadow-2xl border border-glass-border animate-pulse">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading item details...
+            </div>
         </section>
         
-        <div id="errorMessage" class="error-message" style="display: none;">
-            Article introuvable ou une erreur est survenue.
+        <div id="errorMessage" class="error-message hidden text-center text-price-color font-bold text-xl p-5 bg-glass-bg border border-price-color rounded-xl my-10 backdrop-blur-sm shadow-xl">
+            <i class="fa-solid fa-triangle-exclamation mr-2"></i> Item not found or an error occurred.
         </div>
+        
+        <section id="recommendations" class="mt-20">
+            <h2 class="text-white text-3xl border-b-2 border-primary pb-3 mb-8 font-extrabold flex items-center gap-2"><i class="fa-solid fa-compass text-secondary-accent"></i> Similar Items</h2>
+            <div id="recommendationsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                </div>
+        </section>
+
     </main>
     
-    <div id="cartModal" class="modal">
-        <div class="modal-content medium-modal" dir="ltr"> <span id="closeCartBtn" class="close-button">&times;</span>
-            <h2>🛒 Mon Panier</h2>
-            <div id="cartItemsContainer">
-             </div>
-            <div class="cart-summary">
-                <strong>Total: <span id="cartTotal">0.00 DZD</span></strong>
+    <div id="cartModal" class="modal fixed inset-0 z-[1000] overflow-auto bg-black/80 hidden">
+        <div class="modal-content medium-modal bg-light-bg mx-auto my-[5%] p-8 rounded-xl shadow-[0_0_50px_rgba(229,57,53,0.3)] relative w-11/12 max-w-lg border border-primary/50">
+            <span id="closeCartBtn" class="close-button text-secondary-text absolute top-3 right-5 text-4xl font-bold cursor-pointer leading-none hover:text-primary transition duration-300">&times;</span>
+            <h2 class="text-white text-2xl border-b-2 border-primary/50 pb-2 mb-6 font-bold flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-primary"></i> My Cart</h2>
+            <div id="cartItemsContainer" class="max-h-96 overflow-y-auto pr-2"></div>
+            <div class="cart-summary text-right pt-4 border-t-2 border-primary mt-6 text-xl">
+                <strong class="text-white">Total: <span id="cartTotal" class="text-secondary-accent font-extrabold">0.00 DZD</span></strong>
             </div>
             
-            <button id="goToCheckoutBtn" class="checkout-btn">Passer à la caisse</button>
-            
+            <button id="goToCheckoutBtn" class="checkout-btn w-full p-3 bg-primary text-white border-none rounded-lg cursor-pointer text-lg transition duration-300 hover:bg-red-700 mt-5 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/30">Proceed to Checkout</button>
         </div>
     </div>
-    
+
     <script type="module" src="js/supabase.js"></script> 
     <script type="module" src="js/product.js"></script> 
 </body>

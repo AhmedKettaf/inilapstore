@@ -1,115 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout | تأكيد الطلب</title>
-    <link rel="stylesheet" href="css/client.css"> 
+    <title>Checkout | تأكيد الطلب - INI VOLT</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#E53935',
+                        'secondary-accent': '#FFD700',
+                        'dark-bg': '#0D0D0D',
+                        'light-bg': '#1A1A1A',
+                        'secondary-text': '#9E9E9E',
+                        'price-color': '#FF0000',
+                        'success-color': '#28a745',
+                        'footer-bg': '#000000',
+                        'glass-bg': 'rgba(26, 26, 26, 0.5)',
+                        'glass-border': 'rgba(255, 255, 255, 0.1)',
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"> 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         .checkout-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 30px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            gap: 30px;
-        }
-        .checkout-form-area, .order-summary-area {
-            flex: 1;
-            padding: 20px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-        }
-        .order-summary-area {
-            background-color: #f9f9f9;
+            max-width: 1000px;
         }
         .order-summary-list div {
-            padding: 8px 0;
-            border-bottom: 1px dotted #ddd;
-        }
-        .order-summary-list div:last-child {
-            border-bottom: none;
-        }
-        .final-total {
-            font-size: 1.3em;
-            color: #d9534f; /* لون مميز للإجمالي */
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 2px solid #ddd;
-        }
-        /* تنسيق نموذج الإدخال */
-        .checkout-form-area input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .submit-checkout-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .submit-checkout-btn:hover:not(:disabled) {
-            background-color: #218838;
-        }
-        .submit-checkout-btn:disabled {
-            background-color: #999;
-            cursor: not-allowed;
+             flex-direction: row-reverse;
         }
     </style>
 </head>
-<body>
-    <nav class="client-nav">
-        <h1>INI LAP</h1>
-        <p>Checkout | تأكيد الطلب</p>
+
+<body class="font-sans bg-dark-bg text-white m-0 p-0">
+
+    <nav class="client-nav flex justify-between items-center px-8 py-4 bg-footer-bg text-white shadow-xl sticky top-0 z-50 border-b-2 border-primary">
+        <h1 class="m-0 text-3xl tracking-widest text-primary font-bold">INI LAP</h1>
+        <p class="text-secondary-accent text-lg font-medium">Checkout | تأكيد الطلب <i class="fa-solid fa-truck-fast"></i></p>
+        <a href="index.html" class="text-secondary-text hover:text-secondary-accent transition duration-300">
+            <i class="fa-solid fa-arrow-left"></i> العودة للمتجر
+        </a>
     </nav>
     
-    <main class="container">
-        <h2 style="text-align: center; margin-bottom: 30px;">خطوة أخيرة: تفاصيل الطلب والشحن</h2>
+    <main class="container max-w-7xl mx-auto my-12 px-5 min-h-screen">
+        <h2 class="text-center text-3xl text-white mb-8 font-extrabold border-b border-primary/50 pb-4">
+            <i class="fa-solid fa-list-check text-secondary-accent"></i> خطوة أخيرة: تفاصيل الطلب والشحن
+        </h2>
         
-        <div id="checkoutContainer" class="checkout-container">
+        <div id="checkoutContainer" class="checkout-container flex flex-col lg:flex-row gap-8 mx-auto p-6 bg-light-bg rounded-xl shadow-2xl border border-glass-border">
             
-            <div class="checkout-form-area">
-                <h3>1. بيانات الشحن 📝</h3>
-                <form id="checkoutForm">
-                    <label for="fullName">الاسم واللقب:</label>
-                    <input type="text" id="fullName" required placeholder="مثال: أحمد محمد" />
+            <div class="checkout-form-area flex-1 p-6 border border-primary/50 rounded-xl bg-dark-bg/50">
+                <h3 class="text-2xl font-bold text-primary mb-6 border-b border-glass-border pb-3">1. بيانات الشحن <i class="fa-solid fa-address-card"></i></h3>
+                <form id="checkoutForm" class="flex flex-col gap-4">
+                    <label for="fullName" class="text-white font-medium">الاسم واللقب:</label>
+                    <input type="text" id="fullName" required placeholder="مثال: أحمد محمد" 
+                            class="p-3 border border-secondary-accent/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-dark-bg text-white placeholder-secondary-text transition duration-200">
 
-                    <label for="phone">رقم الهاتف:</label>
-                    <input type="tel" id="phone" required pattern="[0-9]{10,}" placeholder="مثال: 05xx xxx xxx" />
+                    <label for="phone" class="text-white font-medium">رقم الهاتف:</label>
+                    <input type="tel" id="phone" required pattern="[0-9]{10,}" placeholder="مثال: 05xx xxx xxx" 
+                            class="p-3 border border-secondary-accent/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-dark-bg text-white placeholder-secondary-text transition duration-200">
                     
-                    <label for="wilaya">الولاية:</label>
-                    <input type="text" id="wilaya" required placeholder="مثال: الجزائر العاصمة" />
+                    <label for="wilaya" class="text-white font-medium">الولاية:</label>
+                    <input type="text" id="wilaya" required placeholder="مثال: الجزائر العاصمة" 
+                            class="p-3 border border-secondary-accent/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-dark-bg text-white placeholder-secondary-text transition duration-200">
                     
-                    <p id="checkoutMessage" style="color: red; margin-top: 10px;"></p>
+                    <p id="checkoutMessage" class="text-price-color font-semibold mt-2"></p>
                     
-                    <button type="submit" id="submitCheckoutBtn" class="submit-checkout-btn">تأكيد الطلب الآن</button>
+                    <button type="submit" id="submitCheckoutBtn" class="submit-checkout-btn w-full p-3 bg-success-color text-white rounded-lg font-bold text-lg transition duration-300 hover:bg-green-700 shadow-lg shadow-success-color/30 mt-6">
+                        <i class="fa-solid fa-check-circle"></i> تأكيد الطلب الآن
+                    </button>
                 </form>
             </div>
             
-            <div class="order-summary-area">
-                <h3>2. ملخص الطلب 🛍️</h3>
-                <div id="orderSummaryList" class="order-summary-list">
-                    <p style="text-align: center;">جاري تحميل السلة...</p>
+            <div class="order-summary-area flex-1 p-6 border border-secondary-accent/50 rounded-xl bg-dark-bg/70 shadow-inner">
+                <h3 class="text-2xl font-bold text-secondary-accent mb-6 border-b border-glass-border pb-3">2. ملخص الطلب <i class="fa-solid fa-bag-shopping"></i></h3>
+                <div id="orderSummaryList" class="order-summary-list text-secondary-text space-y-3">
+                    <p class="text-center text-secondary-text">جاري تحميل السلة...</p>
                 </div>
-                <div id="finalTotalDisplay" class="final-total">
-                    الإجمالي الكلي: <span>0.00 DZD</span>
+                <div id="finalTotalDisplay" class="final-total text-right text-xl font-bold pt-4 border-t-2 border-primary mt-4">
+                    الإجمالي الكلي: <span class="text-price-color text-3xl font-extrabold">0.00 DZD</span>
                 </div>
+                
+                <p class="mt-4 text-center text-sm text-secondary-text">
+                    <i class="fa-solid fa-money-bill-wave text-success-color"></i> الدفع يكون عند الاستلام (Cash on Delivery).
+                </p>
             </div>
 
         </div>
         
-        <div id="statusAlert" style="text-align: center; margin-top: 30px;"></div>
+        <div id="statusAlert" class="text-center mt-12 p-8 bg-light-bg rounded-xl shadow-2xl"></div>
         
     </main>
     

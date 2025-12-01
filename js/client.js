@@ -20,7 +20,7 @@ const cartTotal = document.getElementById('cartTotal');
 const goToCheckoutBtn = document.getElementById('goToCheckoutBtn');
 
 const menuToggle = document.getElementById('menuToggle');
-const navLinks = document.querySelector('.nav-links');
+const mobileNavLinks = document.getElementById('mobileNavLinks'); 
 
 let allProducts = [];
 let allPCParts = [];
@@ -28,13 +28,16 @@ let allPCParts = [];
 let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
 
 menuToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-    menuToggle.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+    const isActive = mobileNavLinks.classList.contains('translate-x-0');
+    mobileNavLinks.classList.toggle('translate-x-0', !isActive);
+    mobileNavLinks.classList.toggle('-translate-x-full', isActive);
+    menuToggle.textContent = isActive ? '✕' : '☰';
 });
 
-navLinks.querySelectorAll('a').forEach(link => {
+mobileNavLinks.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
-        navLinks.classList.remove('active');
+        mobileNavLinks.classList.remove('translate-x-0');
+        mobileNavLinks.classList.add('-translate-x-full');
         menuToggle.textContent = '☰';
     });
 });
@@ -51,7 +54,12 @@ function findItem(id, table) {
     return data.find(item => item.id.toString() === id.toString());
 }
 
-function addToCart(id, table) {
+/**
+ * Ajout au Panier
+ * @param {string} id ID du produit
+ * @param {string} table Nom de la table ('products' ou 'pc_parts')
+ */
+window.addToCart = function(id, table) {
     const existingItem = cart.find(item => item.id.toString() === id.toString() && item.table === table);
     const itemData = findItem(id, table);
 
@@ -66,9 +74,9 @@ function addToCart(id, table) {
     if (existingItem) {
         if (existingItem.quantity < maxQty) {
             existingItem.quantity += 1;
-            alert(`Quantité de ${itemData.name} augmentée à ${existingItem.quantity}.`);
+            alert(`Quantity of ${itemData.name} increased to ${existingItem.quantity}.`);
         } else {
-            alert(`La quantité maximale disponible de ${itemData.name} est ${maxQty}.`);
+            alert(`Maximum available quantity for ${itemData.name} is ${maxQty}.`);
             return;
         }
     } else {
@@ -77,13 +85,137 @@ function addToCart(id, table) {
             const price = itemPrice;
             const image = itemData.image_url;
             cart.push({ id, table, quantity: 1, name, price, image, maxQty });
-            alert(`${name} a été ajouté au panier.`);
+            alert(`${name} has been added to the cart.`);
         } else {
-            alert(`${itemData.name} est en rupture de stock.`);
+            alert(`${itemData.name} is out of stock.`);
             return;
         }
     }
     updateCart();
+}
+
+/**
+ * Crée le HTML pour une carte de produit.
+ * Mise à jour pour le style Black Glassmorphism et les icônes Font Awesome.
+ */
+function createCard(item, table) {
+    const isPcPart = table === 'pc_parts';
+    
+    const itemStockQty = item.stock_qty !== undefined ? item.stock_qty : 0;
+    const inStock = itemStockQty > 0;
+    
+    let stockStatus, actionButton, cardClasses;
+
+    if (inStock) {
+        stockStatus = `<span class="font-semibold px-2 py-1 rounded-md text-xs inline-block uppercase bg-green-900/50 text-success-color border border-success-color/30">In Stock (${itemStockQty})</span>`;
+        actionButton = `
+            <button class="add-to-cart-btn p-2 bg-primary text-white rounded-md hover:bg-red-700 transition duration-300" data-id="${item.id}" data-table="${table}" title="${isPcPart ? 'Add to Configuration' : 'Add to Cart'}">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </button>
+        `;
+    } else {
+        stockStatus = `<span class="font-semibold px-2 py-1 rounded-md text-xs inline-block uppercase bg-red-900/50 text-price-color border border-price-color/30">Out of Stock</span>`;
+        actionButton = `
+            <button disabled class="p-2 bg-secondary-text/50 text-white rounded-md cursor-not-allowed" title="Out of Stock">
+                <i class="fa-solid fa-ban"></i>
+            </button>
+        `;
+    }
+
+    const isOffer = item.is_offer && item.offer_price > 0 && item.offer_price < item.price;
+    const displayPrice = isOffer ? item.offer_price : item.price;
+    
+    let priceHTML;
+    if (isOffer) {
+        priceHTML = `
+            <div class="offer-price-container flex flex-col items-start">
+                <s class="old-price text-base text-secondary-text mb-0 font-normal">${item.price.toFixed(2)} DZD</s>
+                <strong class="new-offer-price text-2xl text-price-color font-extrabold animate-pulse">${displayPrice.toFixed(2)} DZD</strong>
+            </div>
+        `;
+    } else {
+        priceHTML = `<strong class="text-2xl text-price-color font-extrabold">${displayPrice.toFixed(2)} DZD</strong>`;
+    }
+
+    const descriptionText = item.description 
+        ? item.description.substring(0, 100).trim() + (item.description.length > 100 ? '...' : '') 
+        : 'No description provided.';
+
+    return `
+        <div class="product-card bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl shadow-2xl p-4 flex flex-col transition duration-300 hover:shadow-[0_0_20px_rgba(229,57,53,0.4)]">
+            <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}" class="w-full h-40 object-contain mx-auto mb-4 rounded-lg" />
+            
+            ${isOffer ? '<span class="offer-badge absolute top-3 right-3 bg-price-color text-white px-3 py-1 rounded-md text-xs font-bold shadow-md transform rotate-3 z-10">🔥 DEAL!</span>' : ''} 
+            
+            <h3 class="text-xl font-bold text-white mb-2 min-h-[2.8em]">${item.name}</h3>
+            <p class="category text-primary text-sm mb-3 font-semibold">${isPcPart ? item.type.toUpperCase() : item.category.toUpperCase()}</p>
+            <p class="description text-secondary-text text-sm flex-grow mb-4 text-left line-clamp-2">${descriptionText}</p>
+            
+            <div class="card-footer flex justify-between items-center pt-3 border-t border-glass-border mt-auto">
+                ${priceHTML} 
+                <div class="card-actions flex gap-2">
+                    <button class="details-btn p-2 bg-secondary-accent text-dark-bg rounded-md hover:bg-primary transition duration-300 group" data-id="${item.id}" data-table="${table}" title="View Details">
+                        <i class="fa-solid fa-eye group-hover:text-white transition duration-300"></i>
+                    </button>
+                    ${actionButton}
+                </div>
+            </div>
+             <div class="mt-3 text-right">
+                ${stockStatus}
+            </div>
+        </div>
+    `;
+}
+
+
+function updateFilterButtonClass(containerId, activeDataAttribute, activeValue) {
+    document.querySelectorAll(`#${containerId} .filter-btn`).forEach(b => {
+        b.classList.remove('font-bold', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg', 'hover:bg-red-700');
+        b.classList.add('border-secondary-accent', 'bg-dark-bg', 'text-secondary-accent', 'hover:bg-secondary-accent/20', 'hover:text-white');
+        
+        if (b.getAttribute(activeDataAttribute) === activeValue) {
+            b.classList.remove('border-secondary-accent', 'bg-dark-bg', 'text-secondary-accent', 'hover:bg-secondary-accent/20', 'hover:text-white');
+            b.classList.add('font-bold', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg', 'hover:bg-red-700');
+        }
+    });
+}
+
+function displayProducts(filterCategory) {
+    productsGrid.innerHTML = '';
+    const filtered = (filterCategory === 'all')
+        ? allProducts
+        : allProducts.filter(item => item.category === filterCategory);
+
+    if (filtered.length === 0) {
+        productsGrid.innerHTML = '';
+        noProductsFound.textContent = 'No products found in this category.';
+        noProductsFound.classList.remove('hidden');
+    } else {
+        filtered.forEach(item => {
+            productsGrid.innerHTML += createCard(item, 'products');
+        });
+        noProductsFound.classList.add('hidden');
+    }
+    updateFilterButtonClass('productFilters', 'data-category', filterCategory);
+}
+
+function displayPCParts(filterType) {
+    pcPartsGrid.innerHTML = '';
+    const filtered = (filterType === 'all')
+        ? allPCParts
+        : allPCParts.filter(item => item.type === filterType);
+
+    if (filtered.length === 0) {
+        pcPartsGrid.innerHTML = '';
+        noPartsFound.textContent = 'No PC components found in this category.';
+        noPartsFound.classList.remove('hidden');
+    } else {
+        filtered.forEach(item => {
+            pcPartsGrid.innerHTML += createCard(item, 'pc_parts');
+        });
+        noPartsFound.classList.add('hidden');
+    }
+    updateFilterButtonClass('partsFilters', 'data-type', filterType);
 }
 
 function renderCartModal() {
@@ -91,7 +223,7 @@ function renderCartModal() {
     let total = 0;
 
     if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">Le panier est actuellement vide. Ajoutez-y des articles pour commencer vos achats.</p>';
+        cartItemsContainer.innerHTML = '<p class="text-center text-secondary-text p-5">Your cart is currently empty. Add items to start shopping!</p>';
         cartTotal.textContent = '0.00 DZD';
         goToCheckoutBtn.disabled = true;
         return;
@@ -102,20 +234,22 @@ function renderCartModal() {
         total += itemTotal;
 
         const cartItemDiv = document.createElement('div');
-        cartItemDiv.classList.add('cart-item');
+        cartItemDiv.classList.add('cart-item', 'flex', 'items-center', 'border-b', 'border-glass-border', 'py-3', 'gap-3', 'text-white');
         cartItemDiv.innerHTML = `
-            <img src="${item.image || 'placeholder.png'}" alt="${item.name}" class="cart-item-img">
-            <div class="cart-item-details">
-                <h4>${item.name}</h4>
-                <p>Prix unitaire: ${item.price.toFixed(2)} DZD</p> 
-                <div class="cart-quantity-controls">
-                    <button class="qty-control-btn" data-action="decrease" data-index="${index}" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
-                    <input type="number" value="${item.quantity}" min="1" max="${item.maxQty}" data-index="${index}" class="cart-qty-input">
-                    <button class="qty-control-btn" data-action="increase" data-index="${index}" ${item.quantity >= item.maxQty ? 'disabled' : ''}>+</button>
+            <img src="${item.image || 'placeholder.png'}" alt="${item.name}" class="cart-item-img w-16 h-16 object-contain rounded-md border border-glass-border">
+            <div class="cart-item-details flex-grow">
+                <h4 class="m-0 text-base font-semibold text-white">${item.name}</h4>
+                <p class="m-0 text-sm text-secondary-text">Unit Price: ${item.price.toFixed(2)} DZD</p> 
+                <div class="cart-quantity-controls flex items-center my-1">
+                    <button class="qty-control-btn bg-dark-bg border border-glass-border text-white px-2 py-1 cursor-pointer text-base transition duration-200 hover:bg-light-bg" data-action="decrease" data-index="${index}" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+                    <input type="number" value="${item.quantity}" min="1" max="${item.maxQty}" data-index="${index}" class="cart-qty-input w-10 text-center bg-dark-bg text-white border border-glass-border mx-1 p-0.5 rounded-sm">
+                    <button class="qty-control-btn bg-dark-bg border border-glass-border text-white px-2 py-1 cursor-pointer text-base transition duration-200 hover:bg-light-bg" data-action="increase" data-index="${index}" ${item.quantity >= item.maxQty ? 'disabled' : ''}>+</button>
                 </div>
-                <strong>Sous-total: ${itemTotal.toFixed(2)} DZD</strong> 
+                <strong class="text-sm text-secondary-accent">Subtotal: ${itemTotal.toFixed(2)} DZD</strong> 
             </div>
-            <button class="remove-from-cart-btn" data-index="${index}" title="Retirer l'article">❌</button> 
+            <button class="remove-from-cart-btn bg-transparent border-none cursor-pointer text-xl text-price-color p-1 hover:text-red-700 transition duration-300" data-index="${index}" title="Remove Item">
+                <i class="fa-solid fa-trash-can"></i>
+            </button> 
         `;
         cartItemsContainer.appendChild(cartItemDiv);
     });
@@ -126,10 +260,13 @@ function renderCartModal() {
 }
 
 function handleCartControls(e) {
-    const target = e.target;
-    if (target.classList.contains('remove-from-cart-btn')) {
-        const index = target.getAttribute('data-index');
-        if (confirm(`Êtes-vous sûr de vouloir retirer ${cart[index].name} du panier ?`)) {
+    const target = e.target.closest('button') || e.target.closest('input');
+    if (!target) return;
+
+    if (target.classList.contains('remove-from-cart-btn') || target.closest('.fa-trash-can')) {
+        const btn = target.closest('.remove-from-cart-btn');
+        const index = btn.getAttribute('data-index');
+        if (confirm(`Are you sure you want to remove ${cart[index].name} from the cart?`)) {
             cart.splice(index, 1);
             updateCart();
         }
@@ -145,7 +282,6 @@ function handleCartControls(e) {
         }
         updateCart();
     } else if (target.classList.contains('cart-qty-input')) {
-
         const index = target.getAttribute('data-index');
         const item = cart[index];
         let newQty = parseInt(target.value) || 1;
@@ -153,7 +289,7 @@ function handleCartControls(e) {
         if (newQty < 1) newQty = 1;
         if (newQty > item.maxQty) {
             newQty = item.maxQty;
-            alert(`La quantité maximale est ${item.maxQty}.`);
+            alert(`The maximum quantity is ${item.maxQty}.`);
         }
         item.quantity = newQty;
         target.value = newQty; 
@@ -161,103 +297,8 @@ function handleCartControls(e) {
     }
 }
 
-function createCard(item, table) {
-    const isPcPart = table === 'pc_parts';
-    
-    const itemStockQty = item.stock_qty !== undefined ? item.stock_qty : 0;
-    const inStock = itemStockQty > 0;
-    
-    let stockStatus, actionButton, stockClass;
-    let actionText = isPcPart ? 'Ajouter à la Configuration' : 'Ajouter au Panier';
-
-    if (inStock) {
-        stockStatus = `<span class="stock in-stock">En Stock (${itemStockQty})</span>`;
-        stockClass = '';
-        actionButton = `<button class="add-to-cart-btn" data-id="${item.id}" data-table="${table}">${actionText}</button>`;
-    } else {
-
-        stockStatus = `<span class="stock out-of-stock">Rupture de Stock</span>`;
-        stockClass = 'out-of-stock-card';
-        actionButton = `<button class="add-to-cart-btn" data-id="${item.id}" data-table="${table}" disabled>Rupture de Stock</button>`;
-    }
-
-    const isOffer = item.is_offer && item.offer_price > 0 && item.offer_price < item.price;
-    const displayPrice = isOffer ? item.offer_price : item.price;
-    
-    let priceHTML;
-    if (isOffer) {
-        priceHTML = `
-            <div class="offer-price-container">
-                <s class="old-price">${item.price.toFixed(2)} DZD</s>
-                <strong class="new-offer-price">${displayPrice.toFixed(2)} DZD</strong>
-            </div>
-        `;
-    } else {
-        priceHTML = `<strong>${displayPrice.toFixed(2)} DZD</strong>`;
-    }
-
-    const descriptionText = item.description 
-        ? item.description.substring(0, 100).trim() + (item.description.length > 100 ? '...' : '') 
-        : 'Aucune description fournie.';
-
-    return `
-        <div class="product-card ${stockClass} ${isOffer ? 'on-offer' : ''}">
-            <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}" />
-            ${isOffer ? '<span class="offer-badge">🔥 OFFRE !</span>' : ''} 
-            <h3>${item.name}</h3>
-            <p class="category">${isPcPart ? item.type.toUpperCase() : item.category.toUpperCase()}</p>
-            <p class="description">${descriptionText}</p>
-            <div class="card-footer">
-                ${priceHTML} 
-                ${stockStatus}
-                <div class="card-actions">
-                    <button class="details-btn" data-id="${item.id}" data-table="${table}">Voir Détails</button>
-                    ${actionButton}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function displayProducts(filterCategory) {
-    productsGrid.innerHTML = '';
-    const filtered = (filterCategory === 'all')
-        ? allProducts
-        : allProducts.filter(item => item.category === filterCategory);
-
-    if (filtered.length === 0) {
-        productsGrid.innerHTML = '';
-        noProductsFound.textContent = 'Aucun produit trouvé dans cette catégorie.';
-        noProductsFound.style.display = 'block';
-    } else {
-        filtered.forEach(item => {
-            productsGrid.innerHTML += createCard(item, 'products');
-        });
-        noProductsFound.style.display = 'none';
-    }
-}
-
-function displayPCParts(filterType) {
-    pcPartsGrid.innerHTML = '';
-    const filtered = (filterType === 'all')
-        ? allPCParts
-        : allPCParts.filter(item => item.type === filterType);
-
-    if (filtered.length === 0) {
-        pcPartsGrid.innerHTML = '';
-        noPartsFound.textContent = 'Aucun composant PC trouvé dans cette catégorie.';
-        noPartsFound.style.display = 'block';
-    } else {
-        filtered.forEach(item => {
-            pcPartsGrid.innerHTML += createCard(item, 'pc_parts');
-        });
-        noPartsFound.style.display = 'none';
-    }
-}
-
-
 async function loadAndDisplayItems() {
-    statusMessage.textContent = '... Chargement des données du magasin';
+    statusMessage.textContent = '... Loading store data';
 
     try {
         const [productsResponse, partsResponse] = await Promise.all([
@@ -275,13 +316,15 @@ async function loadAndDisplayItems() {
         displayProducts('all');
         displayPCParts('all');
 
-        statusMessage.textContent = '✅ Magasin chargé avec succès.';
-        statusMessage.style.color = 'green';
+        statusMessage.textContent = '✅ Store loaded successfully.';
+        statusMessage.classList.remove('text-secondary-accent', 'border-secondary-accent', 'animate-pulse');
+        statusMessage.classList.add('bg-success-color', 'text-white', 'border-success-color');
         setTimeout(() => { statusMessage.style.display = 'none'; }, 3000);
 
     } catch (error) {
-        statusMessage.textContent = `❌ Échec du chargement : ${error.message}. Veuillez vérifier votre connexion et les clés Supabase.`;
-        statusMessage.style.color = 'red';
+        statusMessage.textContent = `❌ Loading failed: ${error.message}. Please check your connection and Supabase keys.`;
+        statusMessage.classList.remove('text-secondary-accent', 'border-secondary-accent', 'animate-pulse');
+        statusMessage.classList.add('bg-price-color', 'text-white', 'border-price-color');
         console.error('Data Loading Error:', error);
     }
 }
@@ -300,9 +343,6 @@ function closeCartModal() {
 productFilters.addEventListener('click', (e) => {
     const btn = e.target.closest('.filter-btn');
     if (btn) {
-        document.querySelectorAll('#productFilters .filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
         const category = btn.getAttribute('data-category');
         displayProducts(category);
     }
@@ -312,29 +352,32 @@ productFilters.addEventListener('click', (e) => {
 partsFilters.addEventListener('click', (e) => {
     const btn = e.target.closest('.filter-btn');
     if (btn) {
-        document.querySelectorAll('#partsFilters .filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
         const type = btn.getAttribute('data-type');
         displayPCParts(type);
     }
 });
 
 document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('add-to-cart-btn')) {
-        const id = e.target.getAttribute('data-id');
-        const table = e.target.getAttribute('data-table');
-        addToCart(id, table);
+    
+    const addToCartButton = e.target.closest('.add-to-cart-btn');
+
+    if (addToCartButton) {
+        const id = addToCartButton.getAttribute('data-id');
+        const table = addToCartButton.getAttribute('data-table');
+        window.addToCart(id, table);
     }
-    else if (e.target.classList.contains('details-btn')) {
-        const id = e.target.getAttribute('data-id');
-        const table = e.target.getAttribute('data-table');
-        window.location.href = `product.html?id=${id}&table=${table}`;
-    }
-    else if (e.target.closest('.cart-item')) {
-        handleCartControls(e);
+    else if (e.target.closest('.details-btn')) { 
+        const btn = e.target.closest('.details-btn');
+        if (btn) {
+            const id = btn.getAttribute('data-id');
+            const table = btn.getAttribute('data-table');
+            window.location.href = `product.html?id=${id}&table=${table}`;
+        }
     }
 });
+
+cartItemsContainer.addEventListener('click', handleCartControls);
+cartItemsContainer.addEventListener('change', handleCartControls);
 
 
 closeCartBtn.addEventListener('click', closeCartModal);
@@ -353,7 +396,7 @@ goToCheckoutBtn.addEventListener('click', () => {
         closeCartModal();
         window.location.href = 'checkout.html';
     } else {
-        alert('Veuillez ajouter des produits à votre panier d\'abord.');
+        alert('Please add products to your cart first.');
     }
 });
 

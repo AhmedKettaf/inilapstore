@@ -15,6 +15,9 @@ function calculateCartTotal() {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 }
 
+/**
+ * Loads the cart from LocalStorage and renders the order summary.
+ */
 function loadAndRenderSummary() {
     const storedCart = localStorage.getItem('shoppingCart');
     cart = storedCart ? JSON.parse(storedCart) : [];
@@ -25,31 +28,35 @@ function loadAndRenderSummary() {
     orderSummaryList.innerHTML = '';
 
     if (cart.length === 0) {
-        orderSummaryList.innerHTML = '<p style="text-align: center; color: red;">❌ السلة فارغة. الرجاء العودة إلى المتجر.</p>';
+        orderSummaryList.innerHTML = '<p class="text-center text-price-color font-bold p-3">❌ السلة فارغة. الرجاء العودة إلى المتجر لإضافة منتجات.</p>';
         submitCheckoutBtn.disabled = true;
+        document.getElementById('checkoutContainer').classList.add('opacity-50', 'pointer-events-none');
         return;
     }
     
     cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         const div = document.createElement('div');
+        div.className = 'flex justify-between items-center text-white';
         div.innerHTML = `
-            <span>${item.name} (x${item.quantity})</span>
-            <strong>${itemTotal.toFixed(2)} DZD</strong>
+            <span class="text-secondary-accent font-semibold">${item.name} <span class="text-secondary-text text-sm">(x${item.quantity})</span></span>
+            <strong class="text-white">${itemTotal.toFixed(2)} DZD</strong>
         `;
-        div.style.display = 'flex';
-        div.style.justifyContent = 'space-between';
         orderSummaryList.appendChild(div);
     });
 
     submitCheckoutBtn.disabled = false;
 }
 
+/**
+ * Handles the submission of the checkout form.
+ */
 async function handleCheckout(e) {
     e.preventDefault();
 
     if (cart.length === 0) {
-        checkoutMessage.textContent = '❌ السلة فارغة.';
+        checkoutMessage.textContent = '❌ السلة فارغة. لا يمكن إرسال الطلب.';
+        checkoutMessage.style.color = '#FF0000';
         return;
     }
     
@@ -58,10 +65,16 @@ async function handleCheckout(e) {
     const wilaya = document.getElementById('wilaya').value;
     const total = cartTotal;
 
+    if (!fullName || !phone || !wilaya) {
+        checkoutMessage.textContent = 'الرجاء ملء جميع الحقول المطلوبة.';
+        checkoutMessage.style.color = '#FFD700';
+        return;
+    }
+    
     submitCheckoutBtn.disabled = true;
-    submitCheckoutBtn.textContent = 'جاري إرسال الطلب...';
+    submitCheckoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري إرسال الطلب...';
     checkoutMessage.textContent = '... يتم معالجة طلبك.';
-    checkoutMessage.style.color = '#007bff';
+    checkoutMessage.style.color = '#E53935';
 
     const orderItemsData = cart.map(item => ({
         id: item.id,
@@ -85,28 +98,50 @@ async function handleCheckout(e) {
         .insert([orderData])
         .select();
 
+    submitCheckoutBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> تأكيد الطلب الآن';
+    
     if (error) {
         console.error('Checkout Error:', error);
-        statusAlert.innerHTML = `<p style="color: red; font-size: 1.2em;">❌ فشل تأكيد الطلب: ${error.message}</p>`;
+        statusAlert.innerHTML = `
+            <div class="bg-dark-bg/50 p-6 rounded-lg border border-price-color">
+                <p class="text-price-color text-2xl font-bold mb-3">❌ فشل تأكيد الطلب</p>
+                <p class="text-secondary-text">حدث خطأ أثناء إرسال طلبك. الرجاء المحاولة مرة أخرى أو التواصل معنا مباشرة.</p>
+                <p class="text-sm text-price-color mt-2">(${error.message})</p>
+            </div>
+        `;
         submitCheckoutBtn.disabled = false;
-        submitCheckoutBtn.textContent = 'تأكيد الطلب الآن';
+        checkoutMessage.textContent = '';
         return;
     }
 
+    // Success
     localStorage.removeItem('shoppingCart');
     cart = [];
     
+    const orderId = data[0].id;
+
     statusAlert.innerHTML = `
-        <h2 style="color: green;">✅ تم تأكيد طلبك بنجاح!</h2>
-        <p>سيتم التواصل معك على الرقم ${phone} لتأكيد تفاصيل الشحن إلى ${wilaya}.</p>
-        <p>رقم الطلب (Order ID): <strong>${data[0].id}</strong></p>
-        <a href="index.html" style="display: block; margin-top: 20px;">العودة إلى المتجر</a>
+        <div class="bg-light-bg p-8 rounded-xl shadow-2xl border-4 border-success-color">
+            <h2 class="text-success-color text-4xl font-extrabold mb-4"><i class="fa-solid fa-check-double"></i> تم تأكيد طلبك بنجاح!</h2>
+            <p class="text-white text-lg mb-2">رقم الطلب (Order ID): <strong class="text-secondary-accent">${orderId}</strong></p>
+            <p class="text-white mb-6">سيتم التواصل معك على الرقم <strong class="text-primary">${phone}</strong> لتأكيد تفاصيل الشحن إلى <strong class="text-primary">${wilaya}</strong>.</p>
+            
+            <p class="text-secondary-text mb-6">
+                شكرًا لتسوقك من <span class="text-primary font-bold">INI LAP</span>.
+            </p>
+
+            <a href="index.html" class="inline-block px-6 py-3 bg-primary text-white font-bold rounded-lg transition duration-300 hover:bg-red-700 shadow-lg shadow-primary/30">
+                <i class="fa-solid fa-house"></i> العودة إلى الصفحة الرئيسية
+            </a>
+        </div>
     `;
     
     document.getElementById('checkoutContainer').style.display = 'none';
+    
+    window.dispatchEvent(new CustomEvent('cartUpdated')); 
 }
 
 
+// --- Event Listeners ---
 checkoutForm.addEventListener('submit', handleCheckout);
-
 document.addEventListener('DOMContentLoaded', loadAndRenderSummary);
