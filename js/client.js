@@ -2,11 +2,13 @@ import { supabase } from './supabase.js';
 
 const productsGrid = document.getElementById('productsGrid');
 const pcPartsGrid = document.getElementById('pcPartsGrid');
+const prebuiltPcsGrid = document.getElementById('prebuiltPcsGrid');
 const productFilters = document.getElementById('productFilters');
 const partsFilters = document.getElementById('partsFilters');
 const statusMessage = document.getElementById('statusMessage');
 const noProductsFound = document.getElementById('noProductsFound');
 const noPartsFound = document.getElementById('noPartsFound');
+const noPrebuiltPcsFound = document.getElementById('noPrebuiltPcsFound');
 
 const detailsModal = document.getElementById('detailsModal');
 const modalBody = document.getElementById('modalBody');
@@ -54,11 +56,6 @@ function findItem(id, table) {
     return data.find(item => item.id.toString() === id.toString());
 }
 
-/**
- * Ajout au Panier
- * @param {string} id ID du produit
- * @param {string} table Nom de la table ('products' ou 'pc_parts')
- */
 window.addToCart = function(id, table) {
     const existingItem = cart.find(item => item.id.toString() === id.toString() && item.table === table);
     const itemData = findItem(id, table);
@@ -94,22 +91,18 @@ window.addToCart = function(id, table) {
     updateCart();
 }
 
-/**
- * Crée le HTML pour une carte de produit.
- * Mise à jour pour le style Black Glassmorphism et les icônes Font Awesome.
- */
 function createCard(item, table) {
     const isPcPart = table === 'pc_parts';
     
     const itemStockQty = item.stock_qty !== undefined ? item.stock_qty : 0;
     const inStock = itemStockQty > 0;
     
-    let stockStatus, actionButton, cardClasses;
+    let stockStatus, actionButton;
 
     if (inStock) {
         stockStatus = `<span class="font-semibold px-2 py-1 rounded-md text-xs inline-block uppercase bg-green-900/50 text-success-color border border-success-color/30">In Stock (${itemStockQty})</span>`;
         actionButton = `
-            <button class="add-to-cart-btn p-2 bg-primary text-white rounded-md hover:bg-red-700 transition duration-300" data-id="${item.id}" data-table="${table}" title="${isPcPart ? 'Add to Configuration' : 'Add to Cart'}">
+            <button onclick="addToCart('${item.id}', '${table}')" class="add-to-cart-btn p-2 bg-primary text-white rounded-md hover:bg-red-700 transition duration-300" data-id="${item.id}" data-table="${table}" title="${isPcPart ? 'Add to Configuration' : 'Add to Cart'}">
                 <i class="fa-solid fa-cart-shopping"></i>
             </button>
         `;
@@ -129,9 +122,10 @@ function createCard(item, table) {
     if (isOffer) {
         priceHTML = `
             <div class="offer-price-container flex flex-col items-start">
-                <s class="old-price text-base text-secondary-text mb-0 font-normal">${item.price.toFixed(2)} DZD</s>
+                <s class="old-price text-sm text-secondary-text/70 font-normal">${item.price.toFixed(2)} DZD</s>
                 <strong class="new-offer-price text-2xl text-price-color font-extrabold animate-pulse">${displayPrice.toFixed(2)} DZD</strong>
             </div>
+            <span class="offer-badge absolute top-3 right-3 bg-price-color text-white px-3 py-1 rounded-bl-lg text-xs font-bold shadow-md z-10">🔥 DEAL</span>
         `;
     } else {
         priceHTML = `<strong class="text-2xl text-price-color font-extrabold">${displayPrice.toFixed(2)} DZD</strong>`;
@@ -141,32 +135,36 @@ function createCard(item, table) {
         ? item.description.substring(0, 100).trim() + (item.description.length > 100 ? '...' : '') 
         : 'No description provided.';
 
+    const detailsLink = `product.html?id=${item.id}&table=${table}`;
+
     return `
-        <div class="product-card bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl shadow-2xl p-4 flex flex-col transition duration-300 hover:shadow-[0_0_20px_rgba(229,57,53,0.4)]">
+        <div class="product-card bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl shadow-2xl p-4 flex flex-col transition duration-300 hover:shadow-[0_0_20px_rgba(229,57,53,0.4)] relative">
             <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}" class="w-full h-40 object-contain mx-auto mb-4 rounded-lg" />
             
-            ${isOffer ? '<span class="offer-badge absolute top-3 right-3 bg-price-color text-white px-3 py-1 rounded-md text-xs font-bold shadow-md transform rotate-3 z-10">🔥 DEAL!</span>' : ''} 
+            ${isOffer ? '<span class="offer-badge absolute top-3 right-3 bg-price-color text-white px-3 py-1 rounded-bl-lg text-xs font-bold shadow-md z-10 transform rotate-3">🔥 DEAL!</span>' : ''}
             
-            <h3 class="text-xl font-bold text-white mb-2 min-h-[2.8em]">${item.name}</h3>
+            <h3 class="text-xl font-bold text-white mb-2 min-h-[3em] overflow-hidden">${item.name}</h3>
             <p class="category text-primary text-sm mb-3 font-semibold">${isPcPart ? item.type.toUpperCase() : item.category.toUpperCase()}</p>
             <p class="description text-secondary-text text-sm flex-grow mb-4 text-left line-clamp-2">${descriptionText}</p>
             
-            <div class="card-footer flex justify-between items-center pt-3 border-t border-glass-border mt-auto">
-                ${priceHTML} 
+            <div class="card-footer flex justify-between items-end pt-3 border-t border-glass-border mt-auto">
+                <div class="price-stock-container">
+                    ${priceHTML} 
+                    <div class="mt-2 text-left">
+                        ${stockStatus}
+                    </div>
+                </div>
+                
                 <div class="card-actions flex gap-2">
-                    <button class="details-btn p-2 bg-secondary-accent text-dark-bg rounded-md hover:bg-primary transition duration-300 group" data-id="${item.id}" data-table="${table}" title="View Details">
+                    <a href="${detailsLink}" class="details-btn p-2 bg-secondary-accent text-dark-bg rounded-md hover:bg-primary transition duration-300 group" title="View Details">
                         <i class="fa-solid fa-eye group-hover:text-white transition duration-300"></i>
-                    </button>
+                    </a>
                     ${actionButton}
                 </div>
-            </div>
-             <div class="mt-3 text-right">
-                ${stockStatus}
             </div>
         </div>
     `;
 }
-
 
 function updateFilterButtonClass(containerId, activeDataAttribute, activeValue) {
     document.querySelectorAll(`#${containerId} .filter-btn`).forEach(b => {
@@ -182,21 +180,37 @@ function updateFilterButtonClass(containerId, activeDataAttribute, activeValue) 
 
 function displayProducts(filterCategory) {
     productsGrid.innerHTML = '';
+    
     const filtered = (filterCategory === 'all')
-        ? allProducts
+        ? allProducts.filter(item => item.category !== 'prebuilt_pc')
         : allProducts.filter(item => item.category === filterCategory);
 
     if (filtered.length === 0) {
-        productsGrid.innerHTML = '';
-        noProductsFound.textContent = 'No products found in this category.';
         noProductsFound.classList.remove('hidden');
     } else {
+        noProductsFound.classList.add('hidden');
         filtered.forEach(item => {
             productsGrid.innerHTML += createCard(item, 'products');
         });
-        noProductsFound.classList.add('hidden');
     }
     updateFilterButtonClass('productFilters', 'data-category', filterCategory);
+    addCardEventListeners();
+}
+
+function displayPrebuiltPcs() {
+    prebuiltPcsGrid.innerHTML = '';
+    
+    const prebuiltPcs = allProducts.filter(item => item.category === 'prebuilt_pc');
+
+    if (prebuiltPcs.length === 0) {
+        noPrebuiltPcsFound.classList.remove('hidden');
+    } else {
+        noPrebuiltPcsFound.classList.add('hidden');
+        prebuiltPcs.forEach(item => {
+            prebuiltPcsGrid.innerHTML += createCard(item, 'products');
+        });
+    }
+    addCardEventListeners();
 }
 
 function displayPCParts(filterType) {
@@ -206,16 +220,115 @@ function displayPCParts(filterType) {
         : allPCParts.filter(item => item.type === filterType);
 
     if (filtered.length === 0) {
-        pcPartsGrid.innerHTML = '';
-        noPartsFound.textContent = 'No PC components found in this category.';
         noPartsFound.classList.remove('hidden');
     } else {
+        noPartsFound.classList.add('hidden');
         filtered.forEach(item => {
             pcPartsGrid.innerHTML += createCard(item, 'pc_parts');
         });
-        noPartsFound.classList.add('hidden');
     }
     updateFilterButtonClass('partsFilters', 'data-type', filterType);
+    addCardEventListeners();
+}
+
+async function fetchProducts() {
+    statusMessage.textContent = 'Loading products...';
+    try {
+        const { data: productsData, error: productsError } = await supabase
+            .from('products')
+            .select('*')
+            .order('id', { ascending: true });
+
+        const { data: pcPartsData, error: pcPartsError } = await supabase
+            .from('pc_parts')
+            .select('*')
+            .order('id', { ascending: true });
+
+        if (productsError) throw productsError;
+        if (pcPartsError) throw pcPartsError;
+
+        allProducts = productsData || [];
+        allPCParts = pcPartsData || [];
+
+        displayProducts('all');
+        displayPrebuiltPcs(); 
+        displayPCParts('all');
+
+        statusMessage.classList.add('hidden');
+
+    } catch (error) {
+        console.error('Error fetching data:', error.message);
+        statusMessage.textContent = 'Error loading products. Please try again.';
+        statusMessage.classList.remove('hidden');
+        statusMessage.classList.add('bg-red-900/50', 'text-price-color', 'border-price-color');
+    }
+}
+
+function addCardEventListeners() {
+    
+}
+
+productFilters.addEventListener('click', (e) => {
+    if (e.target.classList.contains('filter-btn')) {
+        const category = e.target.getAttribute('data-category');
+        displayProducts(category);
+    }
+});
+
+partsFilters.addEventListener('click', (e) => {
+    if (e.target.classList.contains('filter-btn')) {
+        const type = e.target.getAttribute('data-type');
+        displayPCParts(type);
+    }
+});
+
+window.openDetailsModal = function(id, table) {
+    window.location.href = `product.html?id=${id}&table=${table}`;
+}
+
+document.querySelector('#detailsModal .close-button').onclick = () => {
+    detailsModal.classList.add('hidden');
+};
+
+openCartModalBtn.onclick = () => {
+    cartModal.classList.remove('hidden');
+};
+
+closeCartBtn.onclick = () => {
+    cartModal.classList.add('hidden');
+};
+
+window.onclick = (event) => {
+    if (event.target === detailsModal) {
+        detailsModal.classList.add('hidden');
+    }
+    if (event.target === cartModal) {
+        cartModal.classList.add('hidden');
+    }
+};
+
+window.changeCartQuantity = function(id, table, delta) {
+    const item = cart.find(i => i.id.toString() === id.toString() && i.table === table);
+    if (item) {
+        const newQuantity = item.quantity + delta;
+        if (newQuantity > 0 && newQuantity <= item.maxQty) {
+            item.quantity = newQuantity;
+        } else if (newQuantity > item.maxQty) {
+            alert(`Maximum available quantity for ${item.name} is ${item.maxQty}.`);
+        } else if (newQuantity === 0) {
+            removeFromCart(id, table);
+            return;
+        }
+        updateCart();
+    }
+}
+
+window.removeFromCart = function(id, table) {
+    const itemIndex = cart.findIndex(i => i.id.toString() === id.toString() && i.table === table);
+    if (itemIndex > -1) {
+        cart.splice(itemIndex, 1);
+        updateCart();
+    }
 }
 
 function renderCartModal() {
@@ -223,184 +336,42 @@ function renderCartModal() {
     let total = 0;
 
     if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p class="text-center text-secondary-text p-5">Your cart is currently empty. Add items to start shopping!</p>';
-        cartTotal.textContent = '0.00 DZD';
+        cartItemsContainer.innerHTML = '<p class="text-center py-4 text-secondary-text/70">Your cart is empty.</p>';
         goToCheckoutBtn.disabled = true;
-        return;
-    }
+        goToCheckoutBtn.classList.add('bg-gray-600', 'hover:bg-gray-600');
+        goToCheckoutBtn.classList.remove('bg-primary', 'hover:bg-red-700');
+    } else {
+        goToCheckoutBtn.disabled = false;
+        goToCheckoutBtn.classList.remove('bg-gray-600', 'hover:bg-gray-600');
+        goToCheckoutBtn.classList.add('bg-primary', 'hover:bg-red-700');
 
-    cart.forEach((item, index) => {
-        const itemTotal = item.price * item.quantity;
-        total += itemTotal;
-
-        const cartItemDiv = document.createElement('div');
-        cartItemDiv.classList.add('cart-item', 'flex', 'items-center', 'border-b', 'border-glass-border', 'py-3', 'gap-3', 'text-white');
-        cartItemDiv.innerHTML = `
-            <img src="${item.image || 'placeholder.png'}" alt="${item.name}" class="cart-item-img w-16 h-16 object-contain rounded-md border border-glass-border">
-            <div class="cart-item-details flex-grow">
-                <h4 class="m-0 text-base font-semibold text-white">${item.name}</h4>
-                <p class="m-0 text-sm text-secondary-text">Unit Price: ${item.price.toFixed(2)} DZD</p> 
-                <div class="cart-quantity-controls flex items-center my-1">
-                    <button class="qty-control-btn bg-dark-bg border border-glass-border text-white px-2 py-1 cursor-pointer text-base transition duration-200 hover:bg-light-bg" data-action="decrease" data-index="${index}" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
-                    <input type="number" value="${item.quantity}" min="1" max="${item.maxQty}" data-index="${index}" class="cart-qty-input w-10 text-center bg-dark-bg text-white border border-glass-border mx-1 p-0.5 rounded-sm">
-                    <button class="qty-control-btn bg-dark-bg border border-glass-border text-white px-2 py-1 cursor-pointer text-base transition duration-200 hover:bg-light-bg" data-action="increase" data-index="${index}" ${item.quantity >= item.maxQty ? 'disabled' : ''}>+</button>
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            
+            const itemHtml = `
+                <div class="flex items-center space-x-4 py-3 border-b border-primary/20 last:border-b-0">
+                    <img src="${item.image || 'placeholder.png'}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
+                    <div class="flex-grow">
+                        <p class="text-white font-semibold text-sm">${item.name}</p>
+                        <p class="text-secondary-accent text-xs">${item.price.toFixed(2)} DZD</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeCartQuantity('${item.id}', '${item.table}', -1)" class="bg-primary hover:bg-red-700 text-white w-6 h-6 rounded-full text-sm font-bold">-</button>
+                        <span class="text-white w-4 text-center">${item.quantity}</span>
+                        <button onclick="changeCartQuantity('${item.id}', '${item.table}', 1)" class="bg-primary hover:bg-red-700 text-white w-6 h-6 rounded-full text-sm font-bold" ${item.quantity >= item.maxQty ? 'disabled' : ''}>+</button>
+                    </div>
+                    <button onclick="removeFromCart('${item.id}', '${item.table}')" class="text-secondary-text hover:text-price-color transition duration-300">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                 </div>
-                <strong class="text-sm text-secondary-accent">Subtotal: ${itemTotal.toFixed(2)} DZD</strong> 
-            </div>
-            <button class="remove-from-cart-btn bg-transparent border-none cursor-pointer text-xl text-price-color p-1 hover:text-red-700 transition duration-300" data-index="${index}" title="Remove Item">
-                <i class="fa-solid fa-trash-can"></i>
-            </button> 
-        `;
-        cartItemsContainer.appendChild(cartItemDiv);
-    });
+            `;
+            cartItemsContainer.innerHTML += itemHtml;
+        });
+    }
 
     cartTotal.textContent = total.toFixed(2) + ' DZD';
-
-    goToCheckoutBtn.disabled = false;
 }
 
-function handleCartControls(e) {
-    const target = e.target.closest('button') || e.target.closest('input');
-    if (!target) return;
-
-    if (target.classList.contains('remove-from-cart-btn') || target.closest('.fa-trash-can')) {
-        const btn = target.closest('.remove-from-cart-btn');
-        const index = btn.getAttribute('data-index');
-        if (confirm(`Are you sure you want to remove ${cart[index].name} from the cart?`)) {
-            cart.splice(index, 1);
-            updateCart();
-        }
-    } else if (target.classList.contains('qty-control-btn')) {
-        const index = target.getAttribute('data-index');
-        const action = target.getAttribute('data-action');
-        const item = cart[index];
-
-        if (action === 'increase' && item.quantity < item.maxQty) {
-            item.quantity++;
-        } else if (action === 'decrease' && item.quantity > 1) {
-            item.quantity--;
-        }
-        updateCart();
-    } else if (target.classList.contains('cart-qty-input')) {
-        const index = target.getAttribute('data-index');
-        const item = cart[index];
-        let newQty = parseInt(target.value) || 1;
-
-        if (newQty < 1) newQty = 1;
-        if (newQty > item.maxQty) {
-            newQty = item.maxQty;
-            alert(`The maximum quantity is ${item.maxQty}.`);
-        }
-        item.quantity = newQty;
-        target.value = newQty; 
-        updateCart();
-    }
-}
-
-async function loadAndDisplayItems() {
-    statusMessage.textContent = '... Loading store data';
-
-    try {
-        const [productsResponse, partsResponse] = await Promise.all([
-            supabase.from('products').select('*').order('category', { ascending: true }),
-            supabase.from('pc_parts').select('*').order('type', { ascending: true })
-        ]);
-
-        if (productsResponse.error || partsResponse.error) {
-            throw new Error(productsResponse.error?.message || partsResponse.error?.message);
-        }
-
-        allProducts = productsResponse.data || [];
-        allPCParts = partsResponse.data || [];
-
-        displayProducts('all');
-        displayPCParts('all');
-
-        statusMessage.textContent = '✅ Store loaded successfully.';
-        statusMessage.classList.remove('text-secondary-accent', 'border-secondary-accent', 'animate-pulse');
-        statusMessage.classList.add('bg-success-color', 'text-white', 'border-success-color');
-        setTimeout(() => { statusMessage.style.display = 'none'; }, 3000);
-
-    } catch (error) {
-        statusMessage.textContent = `❌ Loading failed: ${error.message}. Please check your connection and Supabase keys.`;
-        statusMessage.classList.remove('text-secondary-accent', 'border-secondary-accent', 'animate-pulse');
-        statusMessage.classList.add('bg-price-color', 'text-white', 'border-price-color');
-        console.error('Data Loading Error:', error);
-    }
-}
-
-
-function openCartModal() {
-    renderCartModal();
-    cartModal.style.display = 'block';
-}
-
-function closeCartModal() {
-    cartModal.style.display = 'none';
-}
-
-
-productFilters.addEventListener('click', (e) => {
-    const btn = e.target.closest('.filter-btn');
-    if (btn) {
-        const category = btn.getAttribute('data-category');
-        displayProducts(category);
-    }
-});
-
-
-partsFilters.addEventListener('click', (e) => {
-    const btn = e.target.closest('.filter-btn');
-    if (btn) {
-        const type = btn.getAttribute('data-type');
-        displayPCParts(type);
-    }
-});
-
-document.addEventListener('click', (e) => {
-    
-    const addToCartButton = e.target.closest('.add-to-cart-btn');
-
-    if (addToCartButton) {
-        const id = addToCartButton.getAttribute('data-id');
-        const table = addToCartButton.getAttribute('data-table');
-        window.addToCart(id, table);
-    }
-    else if (e.target.closest('.details-btn')) { 
-        const btn = e.target.closest('.details-btn');
-        if (btn) {
-            const id = btn.getAttribute('data-id');
-            const table = btn.getAttribute('data-table');
-            window.location.href = `product.html?id=${id}&table=${table}`;
-        }
-    }
-});
-
-cartItemsContainer.addEventListener('click', handleCartControls);
-cartItemsContainer.addEventListener('change', handleCartControls);
-
-
-closeCartBtn.addEventListener('click', closeCartModal);
-
-openCartModalBtn.addEventListener('click', openCartModal);
-
-window.addEventListener('click', (e) => {
-    if (e.target === cartModal) {
-        closeCartModal();
-    }
-});
-
-
-goToCheckoutBtn.addEventListener('click', () => {
-    if (cart.length > 0) {
-        closeCartModal();
-        window.location.href = 'checkout.html';
-    } else {
-        alert('Please add products to your cart first.');
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadAndDisplayItems();
-    updateCart();
-});
+fetchProducts();
+updateCart();
